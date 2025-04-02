@@ -4,6 +4,8 @@
  */
 
 #include "CheckMountStateAction.h"
+#include "BattleGroundTactics.h"
+#include "BattlegroundEY.h"
 #include "BattlegroundWS.h"
 #include "Event.h"
 #include "PlayerbotAI.h"
@@ -98,12 +100,12 @@ bool CheckMountStateAction::isUseful()
     if (bot->InBattleground())
     {
         // Do not use when carrying BG Flags
-        if (bot->HasAura(23333) || bot->HasAura(23335) || bot->HasAura(34976))
+        if (bot->HasAura(BG_WS_SPELL_WARSONG_FLAG) || bot->HasAura(BG_WS_SPELL_SILVERWING_FLAG) || bot->HasAura(BG_EY_NETHERSTORM_FLAG_SPELL))
             return false;
 
-        // Only mount if BG starts in less than 30 sec
+        // Only mount if BG starts in less than 60 sec
         if (Battleground* bg = bot->GetBattleground())
-            if (bg->GetStatus() == STATUS_WAIT_JOIN && bg->GetStartDelayTime() > BG_START_DELAY_30S)
+            if (bg->GetStatus() == STATUS_WAIT_JOIN && ((bg->GetStartDelayTime() > BG_START_DELAY_1M && urand(0, 99) < 66) || bg->GetStartDelayTime() > BG_START_DELAY_30S)) // (bg->GetStartDelayTime() > BG_START_DELAY_1M && urand(0, 99) < 66) does not work yet for some reason, but bg->GetStartDelayTime() > BG_START_DELAY_30S does
                 return false;
     }
 

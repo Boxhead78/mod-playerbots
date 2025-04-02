@@ -25,16 +25,17 @@ bool AttackEnemyPlayerAction::isUseful()
 bool AttackEnemyFlagCarrierAction::isUseful()
 {
     Unit* target = context->GetValue<Unit*>("enemy flag carrier")->Get();
-    return target && sServerFacade->IsDistanceLessOrEqualThan(sServerFacade->GetDistance2d(bot, target), 75.0f) &&
+    return target && sServerFacade->IsDistanceLessOrEqualThan(sServerFacade->GetDistance2d(bot, target), 100.0f) &&
            PlayerHasFlag::IsCapturingFlag(bot);
 }
 
 bool AttackAnythingAction::isUseful()
 {
+
     if (!bot || !botAI)  // Prevents invalid accesses
         return false;
 
-    if (!botAI->AllowActivity(GRIND_ACTIVITY))  // Bot cannot be active
+    if (!botAI->AllowActivity(GRIND_ACTIVITY))  // Bot not allowed to be active
         return false;
 
     if (botAI->HasStrategy("stay", BOT_STATE_NON_COMBAT))
@@ -44,6 +45,7 @@ bool AttackAnythingAction::isUseful()
         return false;
 
     Unit* target = GetTarget();
+
     if (!target || !target->IsInWorld())  // Checks if the target is valid and in the world
         return false;
 
