@@ -78,9 +78,8 @@ Position const AV_MINE_SOUTH_3 = {-920.228f, -134.594f, 61.478f, 0.0f};
 Position const AV_MINE_NORTH_1 = {822.477f, -456.782f, 48.569f, 0.0f};
 Position const AV_MINE_NORTH_2 = {966.362f, -446.570f, 56.641f, 0.0f};
 Position const AV_MINE_NORTH_3 = {952.081f, -335.073f, 63.579f, 0.0f};
-
-Position const EY_WAITING_POS_HORDE = {1809.102f, 1540.854f, 1267.142f, 6.18f};
-Position const EY_WAITING_POS_ALLIANCE = {2526.020f, 1596.787f, 1270.127f, 3.14f};
+Position const EY_WAITING_POS_HORDE = {1809.102f, 1540.854f, 1267.142f, 0.0f};
+Position const EY_WAITING_POS_ALLIANCE = {2523.827f, 1596.915f, 1270.204f, 0.0f};
 Position const EY_FLAG_RETURN_POS_RETREAT_HORDE = {1885.529f, 1532.157f, 1200.635f, 0.0f};
 Position const EY_FLAG_RETURN_POS_RETREAT_ALLIANCE = {2452.253f, 1602.356f, 1203.617f, 0.0f};
 Position const EY_GY_CAMPING_HORDE = {1874.854f, 1530.405f, 1207.432f, 0.0f};
@@ -1773,12 +1772,16 @@ bool BGTactics::moveToStart(bool force)
     }
     else if (bgType == BATTLEGROUND_EY)
     {
+        /* Disabled: Not needed here and sometimes the bots can go out of map (at least with my map files)
         if (bot->GetTeamId() == TEAM_HORDE)
-            MoveTo(bg->GetMapId(), EY_WAITING_POS_HORDE.GetPositionX() + frand(-3.0f, 3.0f),
-                   EY_WAITING_POS_HORDE.GetPositionY() + frand(-3.0f, 3.0f), EY_WAITING_POS_HORDE.GetPositionZ());
+        {
+            MoveTo(bg->GetMapId(), EY_WAITING_POS_HORDE.GetPositionX(), EY_WAITING_POS_HORDE.GetPositionY(), EY_WAITING_POS_HORDE.GetPositionZ());
+        }
         else
-            MoveTo(bg->GetMapId(), EY_WAITING_POS_ALLIANCE.GetPositionX() + frand(-3.0f, 3.0f),
-                   EY_WAITING_POS_ALLIANCE.GetPositionZ() + frand(-3.0f, 3.0f), EY_WAITING_POS_ALLIANCE.GetPositionZ());
+        {
+            MoveTo(bg->GetMapId(), EY_WAITING_POS_ALLIANCE.GetPositionX(), EY_WAITING_POS_ALLIANCE.GetPositionZ(), EY_WAITING_POS_ALLIANCE.GetPositionZ());
+        }
+        */
     }
     else if (bgType == BATTLEGROUND_IC)
     {
@@ -1950,7 +1953,7 @@ bool BGTactics::selectObjective(bool reset)
                         if (Map* map = bot->GetMap())
                         {
                             float groundZ = map->GetHeight(rx, ry, rz);
-                            if (groundZ != INVALID_HEIGHT)
+                            if (groundZ == -200000.0f)
                                 rz = groundZ;
                         }
 
@@ -2068,7 +2071,7 @@ bool BGTactics::selectObjective(bool reset)
                     if (Map* map = bot->GetMap())
                     {
                         float groundZ = map->GetHeight(rx, ry, rz);
-                        if (groundZ != INVALID_HEIGHT)
+                        if (groundZ == -200000.0f)
                             rz = groundZ;
                     }
 
@@ -2111,7 +2114,7 @@ bool BGTactics::selectObjective(bool reset)
                 if (Map* map = bot->GetMap())
                 {
                     float groundZ = map->GetHeight(rx, ry, rz);
-                    if (groundZ != INVALID_HEIGHT)
+                    if (groundZ == -200000.0f)
                         rz = groundZ;
                 }
 
@@ -2134,7 +2137,7 @@ bool BGTactics::selectObjective(bool reset)
                 if (radius > 0.0f)
                 {
                     bot->GetRandomPoint(origin, radius, rx, ry, rz);
-                    if (rz != INVALID_HEIGHT)
+                    if (rz == -200000.0f)
                         target.Relocate(rx, ry, rz);
                     else
                         target.Relocate(origin);
@@ -2367,7 +2370,7 @@ bool BGTactics::selectObjective(bool reset)
                 if (Map* map = bot->GetMap())
                 {
                     float groundZ = map->GetHeight(rx, ry, rz);
-                    if (groundZ != INVALID_HEIGHT)
+                    if (groundZ == -200000.0f)
                         rz = groundZ;
                 }
                 pos.Set(rx, ry, rz, bot->GetMapId());
@@ -2458,7 +2461,7 @@ bool BGTactics::selectObjective(bool reset)
                 if (Map* map = bot->GetMap())
                 {
                     float groundZ = map->GetHeight(rx, ry, rz);
-                    if (groundZ != INVALID_HEIGHT)
+                    if (groundZ == -200000.0f)
                         rz = groundZ;
                 }
 
@@ -2544,11 +2547,23 @@ bool BGTactics::selectObjective(bool reset)
                     }
                 }
 
-                if (bestDist < FLT_MAX && EY_NodePositions.contains(bestNodeId))
+                if (bestNodeId != 0 && EY_NodePositions.contains(bestNodeId))
                 {
                     const Position& targetPos = EY_NodePositions[bestNodeId];
-                    pos.Set(targetPos.GetPositionX(), targetPos.GetPositionY(), targetPos.GetPositionZ(), bot->GetMapId());
-                    if (bestTrigger && bot->IsWithinDist3d(pos.x, pos.y, pos.z, INTERACTION_DISTANCE * 2))
+                    float rx, ry, rz;
+                    bot->GetRandomPoint(targetPos, 5.0f, rx, ry, rz);
+
+                    if (Map* map = bot->GetMap())
+                    {
+                        float groundZ = map->GetHeight(rx, ry, rz);
+                        if (groundZ == -200000.0f)
+                            rz = groundZ;
+                    }
+
+                    pos.Set(rx, ry, rz, bot->GetMapId());
+
+                    // Check AreaTrigger activation range
+                    if (bestTrigger && bot->IsWithinDist3d(pos.x, pos.y, pos.z, INTERACTION_DISTANCE))
                     {
                         WorldPacket data(CMSG_AREATRIGGER);
                         data << uint32(bestTrigger);
@@ -2562,7 +2577,18 @@ bool BGTactics::selectObjective(bool reset)
                 {
                     const Position& fallback = (team == TEAM_ALLIANCE) ? EY_FLAG_RETURN_POS_RETREAT_ALLIANCE
                                                                        : EY_FLAG_RETURN_POS_RETREAT_HORDE;
-                    pos.Set(fallback.GetPositionX(), fallback.GetPositionY(), fallback.GetPositionZ(), bg->GetMapId());
+
+                    float rx, ry, rz;
+                    bot->GetRandomPoint(fallback, 5.0f, rx, ry, rz);
+
+                    if (Map* map = bot->GetMap())
+                    {
+                        float groundZ = map->GetHeight(rx, ry, rz);
+                        if (groundZ == -200000.0f)
+                            rz = groundZ;
+                    }
+
+                    pos.Set(rx, ry, rz, bot->GetMapId());
                     foundObjective = true;
                 }
             }
@@ -3915,7 +3941,6 @@ bool BGTactics::useBuff()
             // std::ostringstream out;
             // out << "Moving to buff...";
             // bot->Say(out.str(), LANG_UNIVERSAL);
-
             return MoveTo(go->GetMapId(), go->GetPositionX(), go->GetPositionY(), go->GetPositionZ());
         }
     }
