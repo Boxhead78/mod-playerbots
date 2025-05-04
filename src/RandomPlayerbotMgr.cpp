@@ -2021,24 +2021,29 @@ void RandomPlayerbotMgr::RandomizeFirst(Player* bot)
     }
     else
     {
-        level = urand(sPlayerbotAIConfig->randomBotMinLevel, maxLevel);
         uint32 roll = urand(1, 10000);
-        uint32 chance80 = 10000 * sPlayerbotAIConfig->randomBotMaxLevelChance;
-        uint32 chance70 = 10000 * sPlayerbotAIConfig->randomBotLevel70Chance;
-        uint32 chance60 = 10000 * sPlayerbotAIConfig->randomBotLevel60Chance;
+        uint32 chance80 = uint32(10000 * sPlayerbotAIConfig->randomBotMaxLevelChance);
+        uint32 chance70 = uint32(10000 * sPlayerbotAIConfig->randomBotLevel70Chance);
+        uint32 chance60 = uint32(10000 * sPlayerbotAIConfig->randomBotLevel60Chance);
+        uint32 chanceMin = uint32(10000 * sPlayerbotAIConfig->randomBotMinLevelChance);
+    
         if (roll <= chance80)
             level = 80;
         else if (roll <= chance80 + chance70)
             level = 70;
         else if (roll <= chance80 + chance70 + chance60)
             level = 60;
+        else if (roll <= chance80 + chance70 + chance60 + chanceMin)
+            level = sPlayerbotAIConfig->randomBotMinLevel;
         else
             level = urand(sPlayerbotAIConfig->randomBotMinLevel, maxLevel);
 
-        if (bot->getClass() == CLASS_DEATH_KNIGHT)
+        if (bot->getClass() == CLASS_DEATH_KNIGHT && level < 55)
+        {
             level = urand(
                 std::max(sPlayerbotAIConfig->randomBotMinLevel, sWorld->getIntConfig(CONFIG_START_HEROIC_PLAYER_LEVEL)),
                 std::max(sWorld->getIntConfig(CONFIG_START_HEROIC_PLAYER_LEVEL), maxLevel));
+        }
     }
 
     if (sPlayerbotAIConfig->disableRandomLevels)
