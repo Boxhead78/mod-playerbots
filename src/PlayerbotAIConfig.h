@@ -87,6 +87,8 @@ public:
     int32 randomGearQualityLimit;
     int32 randomGearScoreLimit;
     float randomBotMinLevelChance, randomBotMaxLevelChance;
+    float randomBotLevel70Chance;
+    float randomBotLevel60Chance;
     float randomBotRpgChance;
     uint32 minRandomBots, maxRandomBots;
     uint32 randomBotUpdateInterval, randomBotCountChangeMinInterval, randomBotCountChangeMaxInterval;
@@ -324,6 +326,16 @@ public:
     uint32 randomBotArenaTeam5v5Count;
     bool deleteRandomBotArenaTeams;
     std::vector<uint32> randomBotArenaTeams;
+
+    float healMultiplier;
+    float damageMultiplier;
+    float hpMultiplier;
+    float manaMultiplier;
+    float dungeonRaidIncomingDamageMultiplier;
+    float hpRegenMultiplier;
+    float manaRegenMultiplier;
+    float threatTankMultiplier;
+    bool amountByToD;
 
     uint32 selfBotLevel;
     bool downgradeMaxLevelBot;

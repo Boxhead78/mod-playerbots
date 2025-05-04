@@ -326,7 +326,7 @@ void RandomPlayerbotMgr::UpdateAIInternal(uint32 elapsed, bool /*minimal*/)
     if (!maxAllowedBotCount || (maxAllowedBotCount < sPlayerbotAIConfig->minRandomBots ||
                                 maxAllowedBotCount > sPlayerbotAIConfig->maxRandomBots))
     {
-        maxAllowedBotCount = urand(sPlayerbotAIConfig->minRandomBots, sPlayerbotAIConfig->maxRandomBots);
+        maxAllowedBotCount = CalculateToDBotCount();
         SetEventValue(0, "bot_count", maxAllowedBotCount,
                       urand(sPlayerbotAIConfig->randomBotCountChangeMinInterval,
                             sPlayerbotAIConfig->randomBotCountChangeMaxInterval));
@@ -1042,6 +1042,20 @@ void RandomPlayerbotMgr::CheckLfgQueue()
         }
     }
 
+    // Push Raid dungeons || Always allow to queue for raids
+    lfg::LfgDungeonSet const& dungeons = sLFGMgr->GetAllDungeons(0);
+    for (lfg::LfgDungeonSet::const_iterator it = dungeons.begin(); it != dungeons.end(); ++it)
+    {
+        lfg::LFGDungeonData const* dungeon = sLFGMgr->GetLFGDungeon(*it);
+
+        // group 6 = Classic, 7 = TBC, 8 = WotLK, 9 = ICC/RS
+        if (dungeon->group < 6 || dungeon->group > 9)
+            continue;
+
+        LfgDungeons[TEAM_ALLIANCE].push_back(dungeon->id);
+        LfgDungeons[TEAM_HORDE].push_back(dungeon->id);
+    }
+
     LOG_DEBUG("playerbots", "LFG Queue check finished");
 }
 
@@ -1182,6 +1196,9 @@ bool RandomPlayerbotMgr::ProcessBot(uint32 bot)
             ProcessBot(player);
 
         randomTime = urand(sPlayerbotAIConfig->minRandomBotReviveTime, sPlayerbotAIConfig->maxRandomBotReviveTime);
+        if (botAI && botAI->GetMaster())
+            randomTime = urand(15,30);
+
         SetEventValue(bot, "update", 1, randomTime);
 
         return true;
@@ -1217,10 +1234,12 @@ bool RandomPlayerbotMgr::ProcessBot(Player* player)
     {
         if (!GetEventValue(bot, "dead"))
         {
-            uint32 randomTime =
-                urand(sPlayerbotAIConfig->minRandomBotReviveTime, sPlayerbotAIConfig->maxRandomBotReviveTime);
-            LOG_DEBUG("playerbots", "Mark bot {} as dead, will be revived in {}s.", player->GetName().c_str(),
-                      randomTime);
+            uint32 randomTime = urand(sPlayerbotAIConfig->minRandomBotReviveTime, sPlayerbotAIConfig->maxRandomBotReviveTime);
+            PlayerbotAI* botAI = GET_PLAYERBOT_AI(player);
+            if (botAI && botAI->GetMaster())
+                randomTime = urand(15,30);
+
+            LOG_DEBUG("playerbots", "Mark bot {} as dead, will be revived in {}s.", player->GetName().c_str(), randomTime);
             SetEventValue(bot, "dead", 1, sPlayerbotAIConfig->maxRandomBotInWorldTime);
             SetEventValue(bot, "revive", 1, randomTime);
             return false;
@@ -2002,19 +2021,24 @@ void RandomPlayerbotMgr::RandomizeFirst(Player* bot)
     }
     else
     {
-        uint32 roll = urand(1, 100);
-        if (roll <= 100 * sPlayerbotAIConfig->randomBotMaxLevelChance)
-        {
-            level = maxLevel;
-        }
-        else if (roll <= (100 * (sPlayerbotAIConfig->randomBotMaxLevelChance + sPlayerbotAIConfig->randomBotMinLevelChance)))
-        {
-            level = minLevel;
-        }
+        level = urand(sPlayerbotAIConfig->randomBotMinLevel, maxLevel);
+        uint32 roll = urand(1, 10000);
+        uint32 chance80 = 10000 * sPlayerbotAIConfig->randomBotMaxLevelChance;
+        uint32 chance70 = 10000 * sPlayerbotAIConfig->randomBotLevel70Chance;
+        uint32 chance60 = 10000 * sPlayerbotAIConfig->randomBotLevel60Chance;
+        if (roll <= chance80)
+            level = 80;
+        else if (roll <= chance80 + chance70)
+            level = 70;
+        else if (roll <= chance80 + chance70 + chance60)
+            level = 60;
         else
-        {
-            level = urand(minLevel, maxLevel);
-        }
+            level = urand(sPlayerbotAIConfig->randomBotMinLevel, maxLevel);
+
+        if (bot->getClass() == CLASS_DEATH_KNIGHT)
+            level = urand(
+                std::max(sPlayerbotAIConfig->randomBotMinLevel, sWorld->getIntConfig(CONFIG_START_HEROIC_PLAYER_LEVEL)),
+                std::max(sWorld->getIntConfig(CONFIG_START_HEROIC_PLAYER_LEVEL), maxLevel));
     }
 
     if (sPlayerbotAIConfig->disableRandomLevels)
@@ -3154,4 +3178,56 @@ ObjectGuid const RandomPlayerbotMgr::GetBattleMasterGUID(Player* bot, Battlegrou
     }
 
     return battleMasterGUID;
+}
+
+uint32 RandomPlayerbotMgr::CalculateToDBotCount()
+{
+    if (!sPlayerbotAIConfig->amountByToD)
+        return 1;
+
+    time_t now = time(nullptr);
+    tm localTime = *localtime(&now);
+
+    int hour = localTime.tm_hour;
+    int weekday = localTime.tm_wday; // 0 = Sunday, 6 = Saturday
+
+    // Base min/max from config
+    uint32 min = sPlayerbotAIConfig->minRandomBots;
+    uint32 max = sPlayerbotAIConfig->maxRandomBots;
+    uint32 target = (min + max) / 2;
+
+    float timeFactor = 1.0f;
+
+    // Adjust population factor based on hour of day
+    if (hour >= 0 && hour < 5)
+        timeFactor = 0.1f + frand(0.0f, 0.05f); // Low activity at night
+    else if (hour >= 5 && hour < 7)
+        timeFactor = 0.3f + frand(0.0f, 0.15f); // Morning, low-mid activity
+    else if (hour >= 7 && hour < 11)
+        timeFactor = 0.45f + frand(0.0f, 0.225f); // Late Morning, mid activity
+    else if (hour >= 11 && hour < 13)
+        timeFactor = 0.6f + frand(0.0f, 0.3f); // Afternoon, medium activity
+    else if (hour >= 13 && hour < 16)
+        timeFactor = 0.8f + frand(0.0f, 0.4f); // Late Afternoon, medium-high activity
+    else if (hour >= 16 && hour < 20)
+        timeFactor = 1.0f + frand(0.0f, 0.5f); // Prime time, highest activity
+    else if (hour >= 20 && hour < 22)
+        timeFactor = 0.7f + frand(0.0f, 0.35f); // Early evening
+    else if (hour >= 22 && hour < 23)
+        timeFactor = 0.5f + frand(0.0f, 0.25f); // Evening
+    else
+        timeFactor = 0.25f + frand(0.0f, 0.125f); // Late evening
+
+    // Weekend bonus multiplier
+    if (weekday == 0 || weekday == 6) // Sunday or Saturday
+        timeFactor *= 1.4f + frand(0.0f, 0.2f);
+
+    // Add daily natural variance (±5%)
+    timeFactor *= 0.95f + frand(0.0f, 0.1f);
+
+    // Scale bot count within allowed range
+    uint32 dynamicBotCount = uint32(target * timeFactor);
+
+    // Clamp to hard limits
+    return std::clamp(dynamicBotCount, min, max);
 }

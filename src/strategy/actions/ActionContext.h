@@ -189,10 +189,18 @@ public:
         creators["buy tabard"] = &ActionContext::buy_tabard;
         creators["guild manage nearby"] = &ActionContext::guild_manage_nearby;
         creators["clean quest log"] = &ActionContext::clean_quest_log;
+        creators["rocket barrage"] = &ActionContext::rocket_barrage;
+        creators["rocket jump"] = &ActionContext::rocket_jump;
+        creators["darkflight"] = &ActionContext::darkflight;
+        creators["feral lunge"] = &ActionContext::feral_lunge;
+        creators["teleport to master"] = &ActionContext::teleport_to_master;
+        creators["revive to master"] = &ActionContext::revive_to_master;
+
 
         // BG Tactics
         creators["bg tactics"] = &ActionContext::bg_tactics;
         creators["bg move to start"] = &ActionContext::bg_move_to_start;
+        creators["bg reset objective force"] = &ActionContext::bg_reset_objective_force;
         creators["bg move to objective"] = &ActionContext::bg_move_to_objective;
         creators["bg select objective"] = &ActionContext::bg_select_objective;
         creators["bg check objective"] = &ActionContext::bg_check_objective;
@@ -373,9 +381,17 @@ private:
     static Action* guild_manage_nearby(PlayerbotAI* botAI) { return new GuildManageNearbyAction(botAI); }
     static Action* clean_quest_log(PlayerbotAI* botAI) { return new CleanQuestLogAction(botAI); }
 
+    static Action* rocket_barrage(PlayerbotAI* botAI) { return new CastRocketBarrageAction(botAI); }
+    static Action* rocket_jump(PlayerbotAI* botAI) { return new CastRocketJumpAction(botAI); }
+    static Action* darkflight(PlayerbotAI* botAI) { return new CastDarkflightAction(botAI); }
+    static Action* feral_lunge(PlayerbotAI* botAI) { return new CastFeralLungeAction(botAI); }
+    static Action* teleport_to_master(PlayerbotAI* botAI) { return new TeleportToMaster(botAI); }
+    static Action* revive_to_master(PlayerbotAI* botAI) { return new ReviveToMaster(botAI); }
+
     // BG Tactics
     static Action* bg_tactics(PlayerbotAI* botAI) { return new BGTactics(botAI); }
     static Action* bg_move_to_start(PlayerbotAI* botAI) { return new BGTactics(botAI, "move to start"); }
+    static Action* bg_reset_objective_force(PlayerbotAI* botAI) { return new BGTactics(botAI, "reset objective force"); }
     static Action* bg_move_to_objective(PlayerbotAI* botAI) { return new BGTactics(botAI, "move to objective"); }
     static Action* bg_select_objective(PlayerbotAI* botAI) { return new BGTactics(botAI, "select objective"); }
     static Action* bg_check_objective(PlayerbotAI* botAI) { return new BGTactics(botAI, "check objective"); }

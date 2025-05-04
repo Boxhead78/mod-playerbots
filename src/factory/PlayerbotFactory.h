@@ -102,6 +102,13 @@ enum PriorizedConsumables
 
 #define MAX_CONSUM_ID 28
 
+struct GearLevelRange
+{
+    uint32 min;
+    uint32 avg;
+    uint32 max;
+};
+
 class PlayerbotFactory
 {
 public:
@@ -196,6 +203,8 @@ private:
     static std::unordered_map<uint32, std::vector<uint32>> trainerIdCache;
     static std::vector<uint32> enchantSpellIdCache;
     static std::vector<uint32> enchantGemIdCache;
+    GearLevelRange GetGearGenerationLevelRange(uint32 level);
+    int32 CalcGearScoreLimitByLevelAndQuality(uint32 level, ItemQualities quality);
 
 protected:
     EnchantContainer m_EnchantContainer;

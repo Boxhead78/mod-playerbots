@@ -36,7 +36,14 @@ void RacialsStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
         new NextAction("berserking", ACTION_NORMAL + 5),
         new NextAction("use trinket", ACTION_NORMAL + 4),
         nullptr)));
-    
+    triggers.push_back(
+        new TriggerNode("medium health", NextAction::array(0, new NextAction("rocket jump", ACTION_NORMAL + 5), nullptr)));
+    triggers.push_back(
+        new TriggerNode("random", NextAction::array(0, new NextAction("feral lunge", ACTION_NORMAL + 5), nullptr)));
+    triggers.push_back(
+        new TriggerNode("often", NextAction::array(0, new NextAction("darkflight", ACTION_NORMAL + 5), nullptr)));
+    triggers.push_back(
+        new TriggerNode("enemy out of melee", NextAction::array(0, new NextAction("rocket barrage", ACTION_NORMAL + 5), nullptr)));
 }
 
 RacialsStrategy::RacialsStrategy(PlayerbotAI* botAI) : Strategy(botAI)

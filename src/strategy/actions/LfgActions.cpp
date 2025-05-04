@@ -101,33 +101,55 @@ bool LfgJoinAction::JoinLFG()
 
     LfgDungeonSet list;
     std::vector<uint32> selected;
-
     std::vector<uint32> dungeons = sRandomPlayerbotMgr->LfgDungeons[bot->GetTeamId()];
     if (!dungeons.size())
         return false;
 
-    for (std::vector<uint32>::iterator i = dungeons.begin(); i != dungeons.end(); ++i)
+    // Often skip dungeon browser and go right in to raid browser
+    if (urand(0,99) < 40)
     {
-        LFGDungeonEntry const* dungeon = sLFGDungeonStore.LookupEntry(*i);
-        if (!dungeon || (dungeon->TypeID != LFG_TYPE_RANDOM && dungeon->TypeID != LFG_TYPE_DUNGEON &&
-                         dungeon->TypeID != LFG_TYPE_HEROIC && dungeon->TypeID != LFG_TYPE_RAID))
-            continue;
+        for (std::vector<uint32>::iterator i = dungeons.begin(); i != dungeons.end(); ++i)
+        {
+            LFGDungeonEntry const* dungeon = sLFGDungeonStore.LookupEntry(*i);
+            if (!dungeon || (dungeon->TypeID != LFG_TYPE_RANDOM && dungeon->TypeID != LFG_TYPE_DUNGEON &&
+                            dungeon->TypeID != LFG_TYPE_HEROIC))
+                continue;
 
-        const auto& botLevel = bot->GetLevel();
+            const auto& botLevel = bot->GetLevel();
 
-        /*LFG_TYPE_RANDOM on classic is 15-58 so bot over level 25 will never queue*/
-        if (dungeon->MinLevel && (botLevel < dungeon->MinLevel || botLevel > dungeon->MaxLevel) ||
-            (botLevel > dungeon->MinLevel + 10 && dungeon->TypeID == LFG_TYPE_DUNGEON))
-            continue;
+            /*LFG_TYPE_RANDOM on classic is 15-58 so bot over level 25 will never queue*/
+            if (dungeon->MinLevel && (botLevel < dungeon->MinLevel || botLevel > dungeon->MaxLevel) ||
+                (botLevel > dungeon->MinLevel + 10 && dungeon->TypeID == LFG_TYPE_DUNGEON))
+                continue;
 
-        selected.push_back(dungeon->ID);
-        list.insert(dungeon->ID);
+            selected.push_back(dungeon->ID);
+            list.insert(dungeon->ID);
+        }
     }
 
     if (!selected.size())
-        return false;
+    {
+        for (std::vector<uint32>::iterator i = dungeons.begin(); i != dungeons.end(); ++i)
+        {
+            LFGDungeonEntry const* dungeon = sLFGDungeonStore.LookupEntry(*i);
+            if (!dungeon || dungeon->TypeID != LFG_TYPE_RAID)
+                continue;
 
-    if (list.empty())
+            const auto& botLevel = bot->GetLevel();
+            if (dungeon->GroupID < 6 || dungeon->GroupID > 9)
+                continue;
+
+            if ((botLevel == 60 && dungeon->GroupID == 6) ||                        // Raid Classic
+                (botLevel == 70 && dungeon->GroupID == 7) ||                        // Raid TBC
+                (botLevel == 80 && (dungeon->GroupID == 8 || dungeon->GroupID == 9)))  // Raid WotLK
+            {
+                selected.push_back(dungeon->ID);
+                list.insert(dungeon->ID);
+            }
+        }
+    }
+
+    if (!selected.size())
         return false;
 
     bool many = list.size() > 1;
@@ -149,23 +171,23 @@ bool LfgJoinAction::JoinLFG()
              bot->GetTeamId() == TEAM_ALLIANCE ? "A" : "H", bot->GetLevel(), bot->GetName().c_str(), _roles,
              many ? "several dungeons" : dungeon->Name[0]);
 
-    // Set RbotAId Browser comment
-    std::string const _gs = std::to_string(botAI->GetEquipGearScore(bot/*, false, false*/));
-    
-    // JoinLfg is not threadsafe, so make packet and queue into session
-    // sLFGMgr->JoinLfg(bot, roleMask, list, _gs);
-
+    std::string _gs = std::to_string(static_cast<int>(bot->GetAverageItemLevelForDF()));
+    std::string comment = "Bot " + _roles + " GS:" + _gs + " for LFG";
     WorldPacket* data = new WorldPacket(CMSG_LFG_JOIN);
-    *data << (uint32)roleMask;
-    *data << (bool)false;
-    *data << (bool)false;
-    // Slots
-    *data << (uint8)(list.size());
+    *data << (uint32)roleMask;         // Roles
+    *data << (bool)false;              // NoPartialClear
+    *data << (bool)false;              // Achievements
+    *data << (uint8)(list.size());     // Slots count
     for (uint32 dungeon : list)
-        *data << (uint32)dungeon;
-    // Needs
-    *data << (uint8)3 << (uint8)0 << (uint8)0 << (uint8)0;
-    *data << _gs;
+        *data << (uint32)dungeon;     // Slot entries
+    
+    *data << (uint8)3                 // Needs array size (always 3)
+        << (uint8)0
+        << (uint8)0
+        << (uint8)0;
+    
+    *data << comment;                 // Comment
+    *data << _gs;                     // Gearscore or "gs"
     bot->GetSession()->QueuePacket(data);
 
     return true;
@@ -210,6 +232,22 @@ bool LfgAcceptAction::Execute(Event event)
             bot->GetSession()->QueuePacket(packet);
             return true;
         }
+
+        if (bot->IsInCombat())
+        {
+            bot->CombatStop(true);
+            bot->ClearInCombat();
+            bot->ClearUnitState(UNIT_STATE_ALL_STATE);
+        }
+
+        if (bot->isDead())
+        {
+            bot->ResurrectPlayer(0.25f);
+            bot->SpawnCorpseBones();
+        }
+
+        LOG_INFO("playerbots", "Bot {} {}:{} <{}> accepts LFG proposal {}", bot->GetGUID().ToString().c_str(),
+                 bot->GetTeamId() == TEAM_ALLIANCE ? "A" : "H", bot->GetLevel(), bot->GetName().c_str(), id);
 
         botAI->GetAiObjectContext()->GetValue<uint32>("lfg proposal")->Set(0);
         bot->ClearUnitState(UNIT_STATE_ALL_STATE);
@@ -274,8 +312,8 @@ bool LfgLeaveAction::Execute(Event event)
     // if (botAI->HasStrategy("lfg", BOT_STATE_NON_COMBAT))
     //    return false;
 
-    // Don't leave if already invited / in dungeon
-    if (sLFGMgr->GetState(bot->GetGUID()) > LFG_STATE_QUEUED)
+    // Don't leave if already invited / in dungeon, but always leave in raidbrowser
+    if (sLFGMgr->GetState(bot->GetGUID()) > LFG_STATE_QUEUED && sLFGMgr->GetState(bot->GetGUID()) != LFG_STATE_RAIDBROWSER)
         return false;
 
     WorldPacket* packet = new WorldPacket(CMSG_LFG_LEAVE);

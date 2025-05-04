@@ -213,6 +213,7 @@ private:
     void RandomTeleport(Player* bot);
     void RandomTeleport(Player* bot, std::vector<WorldLocation>& locs, bool hearth = false);
     uint32 GetZoneLevel(uint16 mapId, float teleX, float teleY, float teleZ);
+    uint32 CalculateToDBotCount();
     typedef void (RandomPlayerbotMgr::*ConsoleCommandHandler)(Player*);
 
     std::vector<Player*> players;

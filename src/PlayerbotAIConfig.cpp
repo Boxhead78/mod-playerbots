@@ -542,6 +542,19 @@ bool PlayerbotAIConfig::Initialize()
     randomBotArenaTeamMaxRating = sConfigMgr->GetOption<int32>("AiPlayerbot.RandomBotArenaTeamMaxRating", 2000);
     randomBotArenaTeamMinRating = sConfigMgr->GetOption<int32>("AiPlayerbot.RandomBotArenaTeamMinRating", 1000);
 
+    // Custom
+    healMultiplier = sConfigMgr->GetOption<float>("AiPlayerbot.HealMultiplier", 1.0f);
+    damageMultiplier = sConfigMgr->GetOption<float>("AiPlayerbot.DamageMultiplier", 1.0f);
+    hpMultiplier = sConfigMgr->GetOption<float>("AiPlayerbot.HPMultiplier", 1.0f);
+    manaMultiplier = sConfigMgr->GetOption<float>("AiPlayerbot.ManaMultiplier", 1.0f);
+    dungeonRaidIncomingDamageMultiplier = sConfigMgr->GetOption<float>("AiPlayerbot.DungeonRaidIncomingDamageMultiplier", 1.0f);
+    hpRegenMultiplier = sConfigMgr->GetOption<float>("AiPlayerbot.HPRegenMultiplier", 1.0f);
+    manaRegenMultiplier = sConfigMgr->GetOption<float>("AiPlayerbot.ManaRegenMultiplier", 1.0f);
+    threatTankMultiplier = sConfigMgr->GetOption<float>("AiPlayerbot.ThreatTankMultiplier", 1.0f);
+    amountByToD = sConfigMgr->GetOption<bool>("AiPlayerbot.AmountToD", true);
+    randomBotLevel70Chance = sConfigMgr->GetOption<float>("AiPlayerbot.RandomBotLevel70Chance", 0.1f);
+    randomBotLevel60Chance = sConfigMgr->GetOption<float>("AiPlayerbot.RandomBotLevel60Chance", 0.1f);
+
     selfBotLevel = sConfigMgr->GetOption<int32>("AiPlayerbot.SelfBotLevel", 1);
 
     RandomPlayerbotFactory::CreateRandomBots();

@@ -241,6 +241,9 @@ void RandomItemMgr::BuildRandomItemCache()
             if (!proto)
                 continue;
 
+            if (proto->VerifiedBuild == 16000)
+                continue; // Skip dev items
+
             if (proto->Duration & 0x80000000)
                 continue;
 

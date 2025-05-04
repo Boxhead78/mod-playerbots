@@ -2459,6 +2459,8 @@ void TravelMgr::LoadQuestTravelTable()
         startNames[RACE_TROLL] = "Orc and Troll";
         startNames[RACE_DRAENEI] = "Draenei";
         startNames[RACE_BLOODELF] = "Blood Elf";
+        startNames[RACE_WORGEN] = "Worgen and Human";
+        startNames[RACE_GOBLIN] = "Goblin";
 
         for (uint32 i = 0; i < MAX_RACES; i++)
         {

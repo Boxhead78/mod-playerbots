@@ -277,6 +277,46 @@ public:
     CastBerserkingAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "berserking") {}
 };
 
+class CastRocketBarrageAction : public CastSpellAction
+{
+public:
+    CastRocketBarrageAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "rocket barrage") {}
+};
+
+class CastRocketJumpAction : public CastSpellAction
+{
+public:
+    CastRocketJumpAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "rocket jump") {}
+};
+
+class CastDarkflightAction : public CastBuffSpellAction
+{
+public:
+    CastDarkflightAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "darkflight") {}
+};
+
+class CastFeralLungeAction : public CastSpellAction
+{
+public:
+    CastFeralLungeAction(PlayerbotAI* botAI) : CastSpellAction(botAI, "feral lunge") {}
+};
+
+class TeleportToMaster : public Action
+{
+public:
+    TeleportToMaster(PlayerbotAI* botAI) : Action(botAI, "teleport to master") {}
+    bool Execute(Event event) override;
+    bool isUseful() override;
+};
+
+class ReviveToMaster : public Action
+{
+public:
+    ReviveToMaster(PlayerbotAI* botAI) : Action(botAI, "revive to master") {}
+    bool Execute(Event event) override;
+    bool isUseful() override;
+};
+
 class UseTrinketAction : public Action
 {
 public:

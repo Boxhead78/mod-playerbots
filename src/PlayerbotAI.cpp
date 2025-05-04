@@ -3918,7 +3918,7 @@ bool PlayerbotAI::canDispel(SpellInfo const* spellInfo, uint32 dispelType)
 bool IsAlliance(uint8 race)
 {
     return race == RACE_HUMAN || race == RACE_DWARF || race == RACE_NIGHTELF || race == RACE_GNOME ||
-           race == RACE_DRAENEI;
+           race == RACE_DRAENEI || race == RACE_WORGEN;
 }
 
 bool PlayerbotAI::HasRealPlayerMaster()
@@ -4248,6 +4248,12 @@ bool PlayerbotAI::AllowActive(ActivityType activityType)
         }
     }
 
+    // In dungeon queue. Speed up lfg queue/join.
+    if (sLFGMgr->GetState(bot->GetGUID()) == lfg::LFG_STATE_QUEUED && sLFGMgr->GetState(bot->GetGUID()) == lfg::LFG_STATE_RAIDBROWSER)
+    {
+        return true;
+    }
+
     // In bg queue. Speed up bg queue/join.
     if (bot->InBattlegroundQueue())
     {
@@ -4265,6 +4271,10 @@ bool PlayerbotAI::AllowActive(ActivityType activityType)
     if (sLFGMgr->GetState(bot->GetGUID()) != lfg::LFG_STATE_NONE)
     {
         isLFG = true;
+    }
+    if (sLFGMgr->GetState(bot->GetGUID()) == lfg::LFG_STATE_RAIDBROWSER)
+    {
+        isLFG = false;
     }
     if (isLFG)
     {
@@ -6186,6 +6196,9 @@ float PlayerbotAI::GetItemScoreMultiplier(ItemQualities quality)
             break;
         case ITEM_QUALITY_LEGENDARY:
             return 1.61051f;
+            break;
+        case ITEM_QUALITY_ARTIFACT:
+            return 1.77156f;
             break;
         default:
             break;

@@ -82,8 +82,8 @@ AiPlayerbot.Enabled = 1
 AiPlayerbot.RandomBotAutologin = 1
 
 # Random bot count
-AiPlayerbot.MinRandomBots = 500
-AiPlayerbot.MaxRandomBots = 500
+AiPlayerbot.MinRandomBots = 50
+AiPlayerbot.MaxRandomBots = 50
 
 # Random bot accounts
 # If you are not using any expansion at all, you may have to set this manually, then
@@ -562,7 +562,7 @@ AiPlayerbot.EnableRandomBotTrading = 1
 AiPlayerbot.DisableRandomLevels = 0
 
 # Set randombots starting level here if "AiPlayerbot.DisableRandomLevels" enabled
-AiPlayerbot.RandombotStartingLevel = 1
+AiPlayerbot.RandombotStartingLevel = 5
 
 # Chance random bot has min level on first randomize (default 0.1)
 AiPlayerbot.RandomBotMinLevelChance = 0.1
@@ -722,7 +722,7 @@ AiPlayerbot.AutoLearnTrainerSpells = 1
 AiPlayerbot.AutoPickTalents = 1
 
 # Spells every random bot will learn on randomize (54197 - cold weather flying)
-AiPlayerbot.RandomBotSpellIds = "54197"
+AiPlayerbot.RandomBotSpellIds = "54197, 98576"
 
 #
 #
@@ -1679,3 +1679,25 @@ AiPlayerbot.TargetPosRecalcDistance = 0.1
 
 # Allow bots to be summoned near innkeepers
 AiPlayerbot.SummonAtInnkeepersEnabled = 1
+
+##############################################
+# Custom                                     #
+##############################################
+
+AiPlayerbot.HealMultiplier = 1.0
+AiPlayerbot.DamageMultiplier = 1.0
+AiPlayerbot.HPMultiplier = 1.0
+AiPlayerbot.ManaMultiplier = 1.0
+AiPlayerbot.DungeonRaidIncomingDamageMultiplier = 1.0
+AiPlayerbot.HPRegenMultiplier = 1.0
+AiPlayerbot.ManaRegenMultiplier = 1.0
+AiPlayerbot.ThreatTankMultiplier = 1.0
+
+# Controlls if the playerbot amount is affected by the time of day
+AiPlayerbot.AmountToD = 1
+
+# Chance random bot has level 70 on first randomize (default 0.15)
+AiPlayerbot.RandomBotLevel70Chance = 0.15
+
+# Chance random bot has level 60 on first randomize (default 0.15)
+AiPlayerbot.RandomBotLevel60Chance = 0.15

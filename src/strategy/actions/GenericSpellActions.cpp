@@ -372,3 +372,84 @@ bool CastDebuffSpellAction::isUseful()
     return CastAuraSpellAction::isUseful() &&
            (target->GetHealth() / AI_VALUE(float, "estimated group dps")) >= needLifeTime;
 }
+
+bool TeleportToMaster::Execute(Event event)
+{
+    Player* master = botAI->GetMaster();
+    if (!master)
+        return false;
+
+    // Teleport
+    bot->TeleportTo(
+        master->GetMapId(),
+        master->GetPositionX(),
+        master->GetPositionY(),
+        master->GetPositionZ(),
+        master->GetOrientation()
+    );
+
+    return true;
+}
+
+bool TeleportToMaster::isUseful()
+{
+    Player* master = botAI->GetMaster();
+    if (!master)
+        return false;
+
+    if (!master->IsAlive() || !master->IsInWorld())
+        return false;
+
+    if (!bot || !bot->IsAlive() || bot->IsInCombat())
+        return false;
+
+    if (bot->GetMapId() != master->GetMapId())
+        return true;
+
+    if (bot->GetDistance(master) <= 75.0f)
+        return false;
+
+    if (botAI->HasStrategy("stay", botAI->GetState()))
+        return false;
+
+    return true;
+}
+
+bool ReviveToMaster::Execute(Event event)
+{
+    Player* master = botAI->GetMaster();
+    if (!master)
+        return false;
+
+    // Revive the bot
+    bot->ResurrectPlayer(0.15f); // 15% HP
+
+    // Teleport to master
+    bot->TeleportTo(
+        master->GetMapId(),
+        master->GetPositionX(),
+        master->GetPositionY(),
+        master->GetPositionZ(),
+        master->GetOrientation()
+    );
+
+    return true;
+}
+
+bool ReviveToMaster::isUseful()
+{
+    Player* master = botAI->GetMaster();
+    if (!master)
+        return false;
+
+    if (!master->IsAlive() || !master->IsInWorld())
+        return false;
+
+    if (master->IsInCombat())
+        return false;
+
+    if (!bot || (bot->IsAlive() && !bot->HasGhostAura()))
+        return false;
+
+    return true;
+}

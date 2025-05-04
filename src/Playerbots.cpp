@@ -102,20 +102,24 @@ public:
             // but it should be publicly accessible and include all modifications you've made
             if (sPlayerbotAIConfig->enabled)
             {
-                ChatHandler(player->GetSession()).SendSysMessage(
-                    "|cff00ff00This server runs with |cff00ccffmod-playerbots|r "
-                    "|cffcccccchttps://github.com/liyunfan1223/mod-playerbots|r");
+                uint32 loc = player->GetSession()->GetSessionDbLocaleIndex();
+                if (loc == 3)
+                    ChatHandler(player->GetSession()).SendSysMessage("|cff00ff00Dieser Server nutzt |cff00ccffmod-playerbots|r ""|cffcccccchttps://github.com/liyunfan1223/mod-playerbots|r");
+                else
+                    ChatHandler(player->GetSession()).SendSysMessage("|cff00ff00This server runs with |cff00ccffmod-playerbots|r ""|cffcccccchttps://github.com/liyunfan1223/mod-playerbots|r");
             }
 
-            if (sPlayerbotAIConfig->enabled || sPlayerbotAIConfig->randomBotAutologin)
+            if ((sPlayerbotAIConfig->enabled || sPlayerbotAIConfig->randomBotAutologin) && player->IsGameMaster())
             {
                 std::string roundedTime =
                     std::to_string(std::ceil((sPlayerbotAIConfig->maxRandomBots * 0.11 / 60) * 10) / 10.0);
                 roundedTime = roundedTime.substr(0, roundedTime.find('.') + 2);
 
-                ChatHandler(player->GetSession()).SendSysMessage(
-                    "|cff00ff00Playerbots:|r bot initialization at server startup takes about '" 
-                    + roundedTime + "' minutes.");
+                uint32 loc = player->GetSession()->GetSessionDbLocaleIndex();
+                if (loc == 3)
+                    ChatHandler(player->GetSession()).SendSysMessage("|cff00ff00Playerbots:|r Die Initialisierung der Bots beim Serverstart dauert etwa '" + roundedTime + "' Minuten.");
+                else
+                    ChatHandler(player->GetSession()).SendSysMessage("|cff00ff00Playerbots:|r bot initialization at server startup takes about '" + roundedTime + "' minutes.");
             }
         }
     }
@@ -223,6 +227,38 @@ public:
         {
             amount = static_cast<uint32>(std::round(static_cast<float>(amount) * sPlayerbotAIConfig->playerbotsXPrate));
         }
+    }
+
+    void OnPlayerAfterUpdateMaxHealth(Player* player, float& value) override
+    {
+        // TODO: This should be adjust to use an aura like damage adjustment. This is more robust to update when changing equipment, etc.
+        if (!sPlayerbotAIConfig->enabled)
+        {
+            return;
+        }
+        if (!player)
+        {
+            return;
+        }
+
+        if (player->GetSession()->IsBot())
+            value *= sPlayerbotAIConfig->hpMultiplier;
+    }
+
+    void OnPlayerAfterUpdateMaxPower(Player* player, Powers& power, float& value) override
+    {
+        // TODO: This should be adjust to use an aura like damage adjustment. This is more robust to update when changing equipment, etc.
+        if (!sPlayerbotAIConfig->enabled || power != POWER_MANA)
+        {
+            return;
+        }
+        if (!player || !player->GetSession()->IsBot())
+        {
+            return;
+        }
+
+        if (player->GetSession()->IsBot())
+            value *= sPlayerbotAIConfig->manaMultiplier;
     }
 };
 
@@ -379,10 +415,101 @@ public:
         sRandomPlayerbotMgr->OnPlayerLogout(player);
     }
 
-    void OnPlayerbotLogoutBots() override
+    void OnPlayerbotLogoutBots() override { sRandomPlayerbotMgr->LogoutAllBots(); }
+};
+
+class PlayerBotsUnitScript : public UnitScript
+{
+public:
+    PlayerBotsUnitScript() : UnitScript("PlayerBotsUnitScript") { }
+
+    void ModifyHealReceived(Unit* /*target*/, Unit *healer, uint32 &heal, SpellInfo const *spellInfo) override
     {
-        LOG_INFO("playerbots", "Logging out all bots...");
-        sRandomPlayerbotMgr->LogoutAllBots();
+        // Skip potions, bandages, percentage based heals like Rune Tap, etc.
+        if (!sPlayerbotAIConfig->enabled || !healer || !heal || !spellInfo || spellInfo->HasAttribute(SPELL_ATTR0_NO_IMMUNITIES) || spellInfo->Mechanic == MECHANIC_BANDAGE)
+        {
+            return;
+        }
+
+        // Skip percentage based heals or spells already nerfed by damage reduction
+        for (uint8 i = 0; i < 3; i++)
+        {
+            if (spellInfo->Effects[i].Effect == SPELL_EFFECT_HEAL_MAX_HEALTH)
+            {
+                return;
+            }
+        }
+        if (spellInfo->Id == 48982 || spellInfo->Id == 20004)
+        {
+            return;
+        }
+
+        bool isPet = healer->GetOwner() && healer->GetOwner()->GetTypeId() == TYPEID_PLAYER;
+        if (!isPet && healer->GetTypeId() != TYPEID_PLAYER)
+        {
+            return;
+        }
+
+        Player* player = isPet ? healer->GetOwner()->ToPlayer() : healer->ToPlayer();
+        if (player && player->GetSession()->IsBot())
+            heal *= sPlayerbotAIConfig->healMultiplier;
+    }
+
+    void ModifySpellDamageTaken(Unit* /*target*/, Unit* attacker, int32& damage, SpellInfo const* /*spellInfo*/) override
+    {
+        if (!sPlayerbotAIConfig->enabled || !attacker || !damage)
+            return;
+
+        bool isPet = attacker->GetOwner() && attacker->GetOwner()->GetTypeId() == TYPEID_PLAYER;
+        if (!isPet && attacker->GetTypeId() != TYPEID_PLAYER)
+        {
+            return;
+        }
+
+        Player* player = isPet ? attacker->GetOwner()->ToPlayer() : attacker->ToPlayer();
+        if (player && player->GetSession()->IsBot())
+            damage *= sPlayerbotAIConfig->damageMultiplier;
+    }
+
+    void ModifyMeleeDamage(Unit* /*target*/, Unit* attacker, uint32& damage) override
+    {
+        if (!sPlayerbotAIConfig->enabled || !attacker || !damage)
+            return;
+
+        bool isPet = attacker->GetOwner() && attacker->GetOwner()->GetTypeId() == TYPEID_PLAYER;
+        if (!isPet && attacker->GetTypeId() != TYPEID_PLAYER)
+        {
+            return;
+        }
+
+        Player* player = isPet ? attacker->GetOwner()->ToPlayer() : attacker->ToPlayer();
+        if (player && player->GetSession()->IsBot())
+            damage *= sPlayerbotAIConfig->damageMultiplier;
+    }
+
+    void ModifyPeriodicDamageAurasTick(Unit* /*target*/, Unit* attacker, uint32& damage, SpellInfo const* spellInfo) override
+    {
+        if (!sPlayerbotAIConfig->enabled || !attacker || !damage || !spellInfo)
+            return;
+
+        // Do not apply reductions to healing auras - these are already modified in the ModifyHeal hook
+        for (uint8 j = 0; j < MAX_SPELL_EFFECTS; ++j)
+        {
+            if (spellInfo->Effects[j].Effect == SPELL_EFFECT_APPLY_AURA && spellInfo->Effects[j].ApplyAuraName == SPELL_AURA_PERIODIC_HEAL)
+            {
+                return;
+            }
+        }
+
+        bool isPet = attacker->GetOwner() && attacker->GetOwner()->GetTypeId() == TYPEID_PLAYER;
+        if (!isPet && attacker->GetTypeId() != TYPEID_PLAYER)
+        {
+            return;
+        }
+
+        Player* player = isPet ? attacker->GetOwner()->ToPlayer() : attacker->ToPlayer();
+        if (player && player->GetSession()->IsBot())
+            damage *= sPlayerbotAIConfig->damageMultiplier;
     }
 };
 
@@ -394,6 +521,7 @@ void AddPlayerbotsScripts()
     new PlayerbotsServerScript();
     new PlayerbotsWorldScript();
     new PlayerbotsScript();
+    new PlayerBotsUnitScript();
 
     AddSC_playerbots_commandscript();
 }

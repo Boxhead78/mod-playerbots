@@ -65,12 +65,77 @@ PlayerbotFactory::PlayerbotFactory(Player* bot, uint32 level, uint32 itemQuality
     botAI = GET_PLAYERBOT_AI(bot);
     if (!this->itemQuality)
     {
-        uint32 gs = sPlayerbotAIConfig->randomGearScoreLimit == 0
-                        ? 0
-                        : PlayerbotFactory::CalcMixedGearScore(sPlayerbotAIConfig->randomGearScoreLimit,
-                                                               sPlayerbotAIConfig->randomGearQualityLimit);
-        this->itemQuality = sPlayerbotAIConfig->randomGearQualityLimit;
-        this->gearScoreLimit = gs;
+        int32 qualityBias = sPlayerbotAIConfig->randomGearQualityLimit;  // default: 3
+        qualityBias = std::clamp(qualityBias, 1, 6);                    // clamp to valid range
+
+        int32 chancePoor      = 5 * (6 - qualityBias);
+        int32 chanceNormal    = 10 * (6 - qualityBias);
+        int32 chanceUncommon  = 15 * (6 - qualityBias);
+        int32 chanceRare      = 30;
+        int32 chanceEpic      = 20 + 4 * (qualityBias - 3);
+        int32 chanceLegendary = 15 + 2 * (qualityBias - 3);
+        int32 chanceArtifact  = 5;
+
+        if (level < 15)
+        {
+            chancePoor += 10;
+            chanceNormal += 10;
+        }
+        else
+        {
+            chancePoor = 0;
+            chanceNormal = 0;
+        }
+
+        if (level >= 60)
+        {
+            chanceRare += 5;
+            chanceEpic += 5;
+        }
+        if (level >= 70)
+        {
+            chanceEpic += 5;
+            chanceLegendary += 5;
+        }
+        if (level >= 80)
+        {
+            chanceLegendary += 5;
+            chanceArtifact += 5;
+        }
+        if (level >= 90)
+        {
+            chanceLegendary += 5;
+            chanceArtifact += 5;
+        }
+
+
+        if (level == 60 || level == 70 || level == 80 || level == 90)
+        {
+            chanceUncommon = std::max(0, int(chanceUncommon) - 15);
+            chanceRare = std::max(0, int(chanceRare) - 15);
+        }
+
+        int32 total = chancePoor + chanceNormal + chanceUncommon + chanceRare + chanceEpic + chanceLegendary + chanceArtifact;
+        int32 roll = urand(1, total);
+
+        int32 accum = 0;
+        if ((accum += chancePoor) > roll)
+            this->itemQuality = ITEM_QUALITY_POOR;
+        else if ((accum += chanceNormal) > roll)
+            this->itemQuality = ITEM_QUALITY_NORMAL;
+        else if ((accum += chanceUncommon) > roll)
+            this->itemQuality = ITEM_QUALITY_UNCOMMON;
+        else if ((accum += chanceRare) > roll)
+            this->itemQuality = ITEM_QUALITY_RARE;
+        else if ((accum += chanceEpic) > roll)
+            this->itemQuality = ITEM_QUALITY_EPIC;
+        else if ((accum += chanceLegendary) > roll)
+            this->itemQuality = ITEM_QUALITY_LEGENDARY;
+        else
+            this->itemQuality = ITEM_QUALITY_ARTIFACT;
+
+        int32 estimatedGS = CalcGearScoreLimitByLevelAndQuality(level, ItemQualities(this->itemQuality));
+        this->gearScoreLimit = sPlayerbotAIConfig->randomGearScoreLimit == 0 ? estimatedGS : std::min(estimatedGS, sPlayerbotAIConfig->randomGearScoreLimit);
     }
 }
 
@@ -2207,13 +2272,13 @@ void PlayerbotFactory::InitSkills()
     };
 
     // Define Riding skill according to level
-    if (bot->GetLevel() >= 70)
+    if (bot->GetLevel() >= 80)
         bot->SetSkill(SKILL_RIDING, 300, 300, 300);
-    else if (bot->GetLevel() >= 60)
+    else if (bot->GetLevel() >= 70)
         bot->SetSkill(SKILL_RIDING, 225, 225, 225);
-    else if (bot->GetLevel() >= 40)
+    else if (bot->GetLevel() >= 60)
         bot->SetSkill(SKILL_RIDING, 150, 150, 150);
-    else if (bot->GetLevel() >= 20)
+    else if (bot->GetLevel() >= 30)
         bot->SetSkill(SKILL_RIDING, 75, 75, 75);
     else
         bot->SetSkill(SKILL_RIDING, 0, 0, 0);
@@ -2946,6 +3011,14 @@ void PlayerbotFactory::InitMounts()
         case RACE_BLOODELF:
             slow = {33660, 35020, 35022, 35018};
             fast = {35025, 35025, 35027};
+            break;
+        case RACE_WORGEN:
+            slow = {98633};
+            fast = {98634};
+            break;
+        case RACE_GOBLIN:
+            slow = {98632};
+            fast = {98631};
             break;
     }
 
@@ -4454,4 +4527,69 @@ void PlayerbotFactory::InitAttunementQuests()
     // Reset XP so bot's level remains unchanged
     bot->GiveLevel(level);
     bot->SetUInt32Value(PLAYER_XP, currentXP);
+}
+
+GearLevelRange PlayerbotFactory::GetGearGenerationLevelRange(uint32 level)
+{
+    if (level < 10)
+        return {1, 10, 15};
+    else if (level < 20)
+        return {10, 20, 25};
+    else if (level < 30)
+        return {20, 30, 35};
+    else if (level < 40)
+        return {30, 40, 45};
+    else if (level < 50)
+        return {40, 50, 58};
+    else if (level < 60)
+        return {50, 60, 65};
+    else if (level == 60)
+        return {60, 70, 85};
+    else if (level < 70)
+        return {80, 105, 125};
+    else if (level == 70)
+        return {110, 140, 156};
+    else if (level < 80)
+        return {130, 175, 200};
+    else if (level == 80)
+        return {187, 232, 284};
+
+    return {1, 10, 15};
+}
+
+int32 PlayerbotFactory::CalcGearScoreLimitByLevelAndQuality(uint32 level, ItemQualities quality)
+{
+    GearLevelRange range = GetGearGenerationLevelRange(level);
+
+    float result = 0.0f;
+
+    switch (quality)
+    {
+        case ITEM_QUALITY_POOR:
+            result = range.min + urand(0, (range.max - range.min) * 0.05f);
+            break;
+        case ITEM_QUALITY_NORMAL:
+            result = range.min + (range.max - range.min) * 0.05f + urand(0, (range.max - range.min) * 0.05f);
+            break;
+        case ITEM_QUALITY_UNCOMMON:
+            result = range.min + (range.avg - range.min) * frand(0.0f, 1.0f);
+            break;
+        case ITEM_QUALITY_RARE:
+            result = range.avg + (range.max - range.avg) * 0.1f * frand(0.0f, 1.0f);
+            break;
+        case ITEM_QUALITY_EPIC:
+            result = range.avg + (range.max - range.avg) * 0.1f + (range.max - range.avg) * 0.1f * frand(0.0f, 1.0f);
+            break;
+        case ITEM_QUALITY_LEGENDARY:
+            result = range.max - (range.max - range.avg) * 0.1f + (range.max - range.avg) * 0.1f * frand(0.0f, 1.0f);
+            break;
+        case ITEM_QUALITY_ARTIFACT:
+            result = range.max;
+            break;
+        default:
+            result = range.avg;
+            break;
+    }
+
+    return int32(result);
 }
