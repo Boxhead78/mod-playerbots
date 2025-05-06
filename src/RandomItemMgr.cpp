@@ -979,7 +979,7 @@ void RandomItemMgr::BuildItemInfoCache()
             strstr(proto->Name1.c_str(), "Deprecated ") || strstr(proto->Name1.c_str(), "Unused ") ||
             strstr(proto->Name1.c_str(), "Monster ") || strstr(proto->Name1.c_str(), "[PH]") ||
             strstr(proto->Name1.c_str(), "(OLD)") || strstr(proto->Name1.c_str(), "QR") ||
-            strstr(proto->Name1.c_str(), "zzOLD"))
+            strstr(proto->Name1.c_str(), "zzOLD") || (proto->VerifiedBuild == 16000))
         {
             itemForTest.insert(proto->ItemId);
             continue;
