@@ -222,11 +222,8 @@ bool AutoGearAction::Execute(Event event)
     }
 
     botAI->TellMaster("I'm auto gearing");
-    uint32 gs = sPlayerbotAIConfig->autoGearScoreLimit == 0
-                    ? 0
-                    : PlayerbotFactory::CalcMixedGearScore(sPlayerbotAIConfig->autoGearScoreLimit,
-                                                           sPlayerbotAIConfig->autoGearQualityLimit);
-    PlayerbotFactory factory(bot, bot->GetLevel(), sPlayerbotAIConfig->autoGearQualityLimit, gs);
+    int32 gs = PlayerbotFactory::CalcGearScoreLimitByLevelAndQuality(bot->GetLevel(), ItemQualities(sPlayerbotAIConfig->autoGearQualityAverage));
+    PlayerbotFactory factory(bot, bot->GetLevel(), sPlayerbotAIConfig->autoGearQualityAverage, gs);
     factory.InitEquipment(true);
     factory.InitAmmo();
     if (bot->GetLevel() >= sPlayerbotAIConfig->minEnchantingBotLevel)

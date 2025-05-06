@@ -65,7 +65,7 @@ PlayerbotFactory::PlayerbotFactory(Player* bot, uint32 level, uint32 itemQuality
     botAI = GET_PLAYERBOT_AI(bot);
     if (!this->itemQuality)
     {
-        int32 qualityBias = sPlayerbotAIConfig->randomGearQualityLimit;  // default: 3
+        int32 qualityBias = sPlayerbotAIConfig->randomGearQualityAverage;  // default: 3
         qualityBias = std::clamp(qualityBias, 1, 6);                    // clamp to valid range
 
         int32 chancePoor      = 5 * (6 - qualityBias);
@@ -76,7 +76,7 @@ PlayerbotFactory::PlayerbotFactory(Player* bot, uint32 level, uint32 itemQuality
         int32 chanceLegendary = 15 + 2 * (qualityBias - 3);
         int32 chanceArtifact  = 5;
 
-        if (level < 15)
+        if (level < 25)
         {
             chancePoor += 10;
             chanceNormal += 10;
@@ -1699,50 +1699,52 @@ void PlayerbotFactory::InitEquipment(bool incremental, bool second_chance)
         {
             desiredQuality--;
         }
+
+        uint32 maxTries = 100;
+        uint32 tries = 0;
         do
         {
-            for (uint32 requiredLevel = bot->GetLevel(); requiredLevel > std::max((int32)bot->GetLevel() - delta, 0);
-                 requiredLevel--)
+            for (uint32 requiredLevel = bot->GetLevel(); requiredLevel > std::max((int32)bot->GetLevel() - delta, 0); requiredLevel--)
             {
                 for (InventoryType inventoryType : GetPossibleInventoryTypeListBySlot((EquipmentSlots)slot))
                 {
-                    for (uint32 itemId : sRandomItemMgr->GetCachedEquipments(requiredLevel, inventoryType))
+                    auto const& equipmentList = sRandomItemMgr->GetCachedEquipments(requiredLevel, inventoryType);
+                    if (equipmentList.empty())
+                        continue;
+        
+                    for (uint32 itemId : equipmentList)
                     {
-                        if (itemId == 46978)  // shaman earth ring totem
-                        {
-                            continue;
-                        }
-                        uint32 skipProb = 25;
-                        if (urand(1, 100) <= skipProb)
-                            continue;
-
-                        // disable next expansion gear
-                        if (sPlayerbotAIConfig->limitGearExpansion && bot->GetLevel() <= 60 && itemId >= 23728)
-                            continue;
-
-                        if (sPlayerbotAIConfig->limitGearExpansion && bot->GetLevel() <= 70 && itemId >= 35570 &&
-                            itemId != 36737 && itemId != 37739 &&
-                            itemId != 37740)  // transition point from TBC -> WOTLK isn't as clear, and there are other
-                                              // wearable TBC items above 35570 but nothing of significance
-                            continue;
-
+                        // Fetch item prototype
                         ItemTemplate const* proto = sObjectMgr->GetItemTemplate(itemId);
                         if (!proto)
                             continue;
-                        
-                        bool shouldCheckGS = desiredQuality > ITEM_QUALITY_NORMAL;
 
-                        if (shouldCheckGS && gearScoreLimit != 0 &&
-                            CalcMixedGearScore(proto->ItemLevel, proto->Quality) > gearScoreLimit)
-                        {
-                            continue;
-                        }
                         if (proto->Class != ITEM_CLASS_WEAPON && proto->Class != ITEM_CLASS_ARMOR)
                             continue;
 
+                        // Check if quality matches desired
                         if (proto->Quality != desiredQuality)
                             continue;
 
+                        // Check if item exceeds configured GearScore limit
+                        if (gearScoreLimit && proto->ItemLevel > gearScoreLimit)
+                            continue;
+
+                        // Prevent low quality gear at higher levels
+                        if ((bot->GetLevel() >= 25 && proto->Quality < ITEM_QUALITY_UNCOMMON) || tries > maxTries / 2)
+                            continue;
+
+                        // Block next expansion gear if enabled in config
+                        if (sPlayerbotAIConfig->limitGearExpansion)
+                        {
+                            if (bot->GetLevel() <= 60 && itemId >= 23728)
+                                continue;
+                            if (bot->GetLevel() <= 70 && itemId >= 35570 &&
+                                itemId != 36737 && itemId != 37739 && itemId != 37740)
+                                continue;
+                        }
+
+                        // Armor equip check based on class and slot
                         if (proto->Class == ITEM_CLASS_ARMOR &&
                             (slot == EQUIPMENT_SLOT_HEAD || slot == EQUIPMENT_SLOT_SHOULDERS ||
                              slot == EQUIPMENT_SLOT_CHEST || slot == EQUIPMENT_SLOT_WAIST ||
@@ -1751,16 +1753,32 @@ void PlayerbotFactory::InitEquipment(bool incremental, bool second_chance)
                             !CanEquipArmor(proto))
                             continue;
 
+                        // Weapon equip check
                         if (proto->Class == ITEM_CLASS_WEAPON && !CanEquipWeapon(proto))
                             continue;
 
+                        // Rogue offhand restriction
                         if (slot == EQUIPMENT_SLOT_OFFHAND && bot->getClass() == CLASS_ROGUE &&
                             proto->Class != ITEM_CLASS_WEAPON)
                             continue;
+
+                        // Add randomness to skip some items
+                        if (urand(1, 100) <= 25)
+                            continue;
+
+                        // Skip shaman earth ring totem
+                        if (itemId == 46978)
+                            continue;
+
+                        // Add to item list for this slot
                         items[slot].push_back(itemId);
                     }
                 }
             }
+            tries++;
+            if (tries >= maxTries)
+                break;
+
         } while (items[slot].size() < 25 && desiredQuality-- > ITEM_QUALITY_POOR);
 
         std::vector<uint32>& ids = items[slot];
@@ -2950,11 +2968,6 @@ void PlayerbotFactory::InitAmmo()
         }
     }
     bot->SetAmmo(entry);
-}
-
-uint32 PlayerbotFactory::CalcMixedGearScore(uint32 gs, uint32 quality)
-{
-    return gs * PlayerbotAI::GetItemScoreMultiplier(ItemQualities(quality));
 }
 
 void PlayerbotFactory::InitMounts()

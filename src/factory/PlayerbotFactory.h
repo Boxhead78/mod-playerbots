@@ -133,7 +133,7 @@ public:
     void InitEquipment(bool incremental, bool second_chance = false);
     void InitPet();
     void InitAmmo();
-    static uint32 CalcMixedGearScore(uint32 gs, uint32 quality);
+    static int32 CalcGearScoreLimitByLevelAndQuality(uint32 level, ItemQualities quality);
     void InitPetTalents();
 
     void InitReagents();
@@ -203,8 +203,7 @@ private:
     static std::unordered_map<uint32, std::vector<uint32>> trainerIdCache;
     static std::vector<uint32> enchantSpellIdCache;
     static std::vector<uint32> enchantGemIdCache;
-    GearLevelRange GetGearGenerationLevelRange(uint32 level);
-    int32 CalcGearScoreLimitByLevelAndQuality(uint32 level, ItemQualities quality);
+    static GearLevelRange GetGearGenerationLevelRange(uint32 level);
 
 protected:
     EnchantContainer m_EnchantContainer;

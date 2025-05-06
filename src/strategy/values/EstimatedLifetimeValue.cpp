@@ -124,26 +124,29 @@ float EstimatedGroupDpsValue::GetBasicDps(uint32 level)
 float EstimatedGroupDpsValue::GetBasicGs(uint32 level)
 {
     float basic_gs;
-
     if (level <= 8)
     {
-        basic_gs = PlayerbotFactory::CalcMixedGearScore(level + 5, ITEM_QUALITY_NORMAL);
+        basic_gs = PlayerbotFactory::CalcGearScoreLimitByLevelAndQuality(level, ITEM_QUALITY_NORMAL);
     }
     else if (level <= 15)
     {
-        basic_gs = PlayerbotFactory::CalcMixedGearScore(level + 5, ITEM_QUALITY_UNCOMMON);
+        basic_gs = PlayerbotFactory::CalcGearScoreLimitByLevelAndQuality(level, ITEM_QUALITY_UNCOMMON);
     }
     else if (level <= 60)
     {
-        basic_gs = PlayerbotFactory::CalcMixedGearScore(level + 5, ITEM_QUALITY_RARE);
+        basic_gs = PlayerbotFactory::CalcGearScoreLimitByLevelAndQuality(level, ITEM_QUALITY_RARE);
     }
     else if (level <= 70)
     {
-        basic_gs = PlayerbotFactory::CalcMixedGearScore(85 + (level - 60) * 3, ITEM_QUALITY_RARE);
+        basic_gs = PlayerbotFactory::CalcGearScoreLimitByLevelAndQuality(level, ITEM_QUALITY_RARE);
+    }
+    else if (level <= 80)
+    {
+        basic_gs = PlayerbotFactory::CalcGearScoreLimitByLevelAndQuality(level, ITEM_QUALITY_RARE);
     }
     else
     {
-        basic_gs = PlayerbotFactory::CalcMixedGearScore(155 + (level - 70) * 4, ITEM_QUALITY_RARE);
+        basic_gs = PlayerbotFactory::CalcGearScoreLimitByLevelAndQuality(level, ITEM_QUALITY_EPIC);
     }
     return basic_gs;
 }

@@ -88,7 +88,7 @@ float StatsWeightCalculator::CalculateItem(uint32 itemId)
 
     if (enable_quality_blend_)
         // Blend with item quality and level
-        weight_ *= PlayerbotFactory::CalcMixedGearScore(proto->ItemLevel, proto->Quality);
+        weight_ *= PlayerbotAI::GetItemScoreMultiplier(ItemQualities(proto->Quality));
 
     return weight_;
 }

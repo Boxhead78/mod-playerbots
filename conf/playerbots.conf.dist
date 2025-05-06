@@ -455,7 +455,7 @@ AiPlayerbot.FleeingEnabled = 1
 # default: 1 (enable)
 AiPlayerbot.MaintenanceCommand = 1
 
-# Enable/Disable autogear command, auto upgrade player bots gears, the quality is limited by AutoGearQualityLimit and AutoGearScoreLimit
+# Enable/Disable autogear command, auto upgrade player bots gears, the quality is limited by AutoGearQualityAverage and AutoGearScoreLimit
 # default: 1 (enable)
 AiPlayerbot.AutoGearCommand = 1
 
@@ -465,7 +465,7 @@ AiPlayerbot.AutoGearCommandAltBots = 1
 
 # Equips quality limitation for auto gear command (1 = normal, 2 = uncommon, 3 = rare, 4 = epic, 5 = legendary)
 # default: 3 (rare)
-AiPlayerbot.AutoGearQualityLimit = 3
+AiPlayerbot.AutoGearQualityAverage = 3
 
 # Equips item level (not gearScore) limitation for auto gear command (0 = no limit)
 # default: 0 (no limit)
@@ -589,7 +589,7 @@ AiPlayerbot.DowngradeMaxLevelBot = 0
 
 # Equips quality limitation for random bots (1 = normal, 2 = uncommon, 3 = rare, 4 = epic, 5 = legendary)
 # default: 3 (rare)
-AiPlayerbot.RandomGearQualityLimit = 3
+AiPlayerbot.RandomGearQualityAverage = 3
 
 # Equips gear score limitation for random bots (0 = no limit)
 # default: 0 (no limit)
