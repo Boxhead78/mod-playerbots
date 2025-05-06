@@ -356,6 +356,9 @@ bool LfgJoinAction::isUseful()
     if (bot->GetLevel() < 15)
         return false;
 	
+    if (bot->GetAverageItemLevelForDF() < 10)
+        return false;
+
 	// don't use if active player master
     if (GET_PLAYERBOT_AI(bot)->IsRealPlayer())
         return false;

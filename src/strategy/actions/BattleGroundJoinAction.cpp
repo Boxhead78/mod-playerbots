@@ -581,6 +581,12 @@ bool FreeBGJoinAction::shouldJoinBg(BattlegroundQueueTypeId queueTypeId, Battleg
     if (bot->GetGroup() && !bot->GetGroup()->IsLeader(bot->GetGUID()))
         return false;
 
+    if (bot->GetLevel() < 10)
+        return false;
+
+    if (bot->GetAverageItemLevelForDF() < 10)
+        return false;
+
     // Check if bots should join Arena
     ArenaType type = ArenaType(BattlegroundMgr::BGArenaType(queueTypeId));
     if (type != ARENA_TYPE_NONE)
