@@ -4248,12 +4248,6 @@ bool PlayerbotAI::AllowActive(ActivityType activityType)
         }
     }
 
-    // In dungeon queue. Speed up lfg queue/join.
-    if (sLFGMgr->GetState(bot->GetGUID()) == lfg::LFG_STATE_QUEUED && sLFGMgr->GetState(bot->GetGUID()) == lfg::LFG_STATE_RAIDBROWSER)
-    {
-        return true;
-    }
-
     // In bg queue. Speed up bg queue/join.
     if (bot->InBattlegroundQueue())
     {
