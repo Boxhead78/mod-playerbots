@@ -195,6 +195,7 @@ public:
         creators["feral lunge"] = &ActionContext::feral_lunge;
         creators["teleport to master"] = &ActionContext::teleport_to_master;
         creators["revive to master"] = &ActionContext::revive_to_master;
+        creators["check group"] = &ActionContext::check_group;
 
 
         // BG Tactics
@@ -387,6 +388,7 @@ private:
     static Action* feral_lunge(PlayerbotAI* botAI) { return new CastFeralLungeAction(botAI); }
     static Action* teleport_to_master(PlayerbotAI* botAI) { return new TeleportToMaster(botAI); }
     static Action* revive_to_master(PlayerbotAI* botAI) { return new ReviveToMaster(botAI); }
+    static Action* check_group(PlayerbotAI* botAI) { return new CheckGroupMaster(botAI); }
 
     // BG Tactics
     static Action* bg_tactics(PlayerbotAI* botAI) { return new BGTactics(botAI); }

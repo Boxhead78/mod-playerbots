@@ -397,19 +397,26 @@ bool TeleportToMaster::isUseful()
     if (!master)
         return false;
 
-    if (!master->IsAlive() || !master->IsInWorld())
+    if (!master->IsAlive() || !master->IsInWorld() || master->IsFlying())
         return false;
 
     if (!bot || !bot->IsAlive() || bot->IsInCombat())
+        return false;
+
+    if (botAI->HasStrategy("stay", botAI->GetState()))
+        return false;
+
+    if (bot->InBattleground() || bot->InArena())
+        return false;
+
+    Group* group = bot->GetGroup();
+    if (group && !group->IsMember(master->GetGUID()))
         return false;
 
     if (bot->GetMapId() != master->GetMapId())
         return true;
 
     if (bot->GetDistance(master) <= 75.0f)
-        return false;
-
-    if (botAI->HasStrategy("stay", botAI->GetState()))
         return false;
 
     return true;
@@ -425,13 +432,16 @@ bool ReviveToMaster::Execute(Event event)
     bot->ResurrectPlayer(0.15f); // 15% HP
 
     // Teleport to master
-    bot->TeleportTo(
-        master->GetMapId(),
-        master->GetPositionX(),
-        master->GetPositionY(),
-        master->GetPositionZ(),
-        master->GetOrientation()
-    );
+    if (!master->IsFlying())
+    {
+        bot->TeleportTo(
+            master->GetMapId(),
+            master->GetPositionX(),
+            master->GetPositionY(),
+            master->GetPositionZ(),
+            master->GetOrientation()
+        );
+    }
 
     return true;
 }
@@ -442,14 +452,54 @@ bool ReviveToMaster::isUseful()
     if (!master)
         return false;
 
-    if (!master->IsAlive() || !master->IsInWorld())
+    if (!master->IsAlive() || !master->IsInWorld() || master->IsInCombat())
         return false;
 
-    if (master->IsInCombat())
+    if (!bot)
         return false;
 
-    if (!bot || (bot->IsAlive() && !bot->HasGhostAura()))
+    if (bot->IsAlive() || bot->HasGhostAura())
+        return false;
+
+    if (bot->InBattleground() || bot->InArena())
+        return false;
+
+    Group* group = bot->GetGroup();
+    if (group && !group->IsMember(master->GetGUID()))
         return false;
 
     return true;
+}
+
+bool CheckGroupMaster::Execute(Event event)
+{
+    botAI->SetMaster(nullptr);
+    botAI->ResetStrategies();
+    botAI->Reset();
+    return true;
+}
+
+bool CheckGroupMaster::isUseful()
+{
+    if (!bot || !botAI)
+        return false;
+
+    if (bot->InBattleground() || bot->InArena())
+        return false;
+
+    if (!sRandomPlayerbotMgr->IsRandomBot(bot))
+        return false;
+
+    Player* master = botAI->GetMaster();
+    if (!master)
+        return true;
+
+    Group* group = bot->GetGroup();
+    if (!group)
+        return true;
+
+    if (!group->IsMember(master->GetGUID()))
+        return true;
+
+    return false;
 }

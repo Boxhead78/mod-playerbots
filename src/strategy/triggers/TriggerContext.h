@@ -39,6 +39,7 @@ public:
         creators["master revive"] = &TriggerContext::masterRevive;
         creators["seldom"] = &TriggerContext::seldom;
         creators["often"] = &TriggerContext::often;
+        creators["very often"] = &TriggerContext::veryOften;
         creators["random lfg"] = &TriggerContext::RandomLFG;
         creators["random lfg leave"] = &TriggerContext::RandomLFGLeave;
         creators["random chat"] = &TriggerContext::RandomChat;
@@ -322,6 +323,7 @@ private:
     static Trigger* masterRevive(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "master revive", 60); }
     static Trigger* seldom(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "seldom", 300); }
     static Trigger* often(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "often", 5); }
+    static Trigger* veryOften(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "very often", 1); }
     static Trigger* RandomLFG(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "random lfg", 150); }
     static Trigger* RandomLFGLeave(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "random lfg leave", 750); }
     static Trigger* RandomChat(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "random chat", 1500); }

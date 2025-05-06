@@ -317,6 +317,14 @@ public:
     bool isUseful() override;
 };
 
+class CheckGroupMaster : public Action
+{
+public:
+    CheckGroupMaster(PlayerbotAI* botAI) : Action(botAI, "check group") {}
+    bool Execute(Event event) override;
+    bool isUseful() override;
+};
+
 class UseTrinketAction : public Action
 {
 public:

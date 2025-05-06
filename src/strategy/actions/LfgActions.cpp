@@ -225,6 +225,11 @@ bool LfgAcceptAction::Execute(Event event)
     // Try accept if already stored
     if (id)
     {
+        LOG_INFO("playerbots", "Bot {} {}:{} <{}> accepts LFG proposal {}", bot->GetGUID().ToString().c_str(),
+                 bot->GetTeamId() == TEAM_ALLIANCE ? "A" : "H", bot->GetLevel(), bot->GetName().c_str(), id);
+
+        botAI->GetAiObjectContext()->GetValue<uint32>("lfg proposal")->Set(0);
+
         if (bot->IsInCombat() || bot->isDead())
         {
             WorldPacket* packet = new WorldPacket(CMSG_LFG_PROPOSAL_RESULT);
@@ -245,12 +250,6 @@ bool LfgAcceptAction::Execute(Event event)
             bot->ResurrectPlayer(0.25f);
             bot->SpawnCorpseBones();
         }
-
-        LOG_INFO("playerbots", "Bot {} {}:{} <{}> accepts LFG proposal {}", bot->GetGUID().ToString().c_str(),
-                 bot->GetTeamId() == TEAM_ALLIANCE ? "A" : "H", bot->GetLevel(), bot->GetName().c_str(), id);
-
-        botAI->GetAiObjectContext()->GetValue<uint32>("lfg proposal")->Set(0);
-        bot->ClearUnitState(UNIT_STATE_ALL_STATE);
 
         WorldPacket* packet = new WorldPacket(CMSG_LFG_PROPOSAL_RESULT);
         *packet << id << true;
@@ -283,9 +282,21 @@ bool LfgAcceptAction::Execute(Event event)
                 bot->GetSession()->QueuePacket(packet);
                 return true;
             }
+    
+            if (bot->IsInCombat())
+            {
+                bot->CombatStop(true);
+                bot->ClearInCombat();
+                bot->ClearUnitState(UNIT_STATE_ALL_STATE);
+            }
+    
+            if (bot->isDead())
+            {
+                bot->ResurrectPlayer(0.25f);
+                bot->SpawnCorpseBones();
+            }
 
             botAI->GetAiObjectContext()->GetValue<uint32>("lfg proposal")->Set(0);
-            bot->ClearUnitState(UNIT_STATE_ALL_STATE);
 
             WorldPacket* packet = new WorldPacket(CMSG_LFG_PROPOSAL_RESULT);
             *packet << id << true;

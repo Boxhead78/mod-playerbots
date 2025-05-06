@@ -17,6 +17,7 @@ void NonCombatStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
     // triggers.push_back(new TriggerNode("at dark portal azeroth", NextAction::array(0, new NextAction("use dark portal azeroth", 1.0f), nullptr)));
     // triggers.push_back(new TriggerNode("at dark portal outland", NextAction::array(0, new NextAction("move from dark portal", 1.0f), nullptr)));
     // triggers.push_back(new TriggerNode("vehicle near", NextAction::array(0, new NextAction("enter vehicle", 10.0f), nullptr)));
+    triggers.push_back(new TriggerNode("very often", NextAction::array(0, new NextAction("check group", 5.0f), nullptr)));
     triggers.push_back(new TriggerNode("often", NextAction::array(0, new NextAction("teleport to master", 1.0f), nullptr)));
     triggers.push_back(new TriggerNode("master revive", NextAction::array(0, new NextAction("revive to master", 1.0f), nullptr)));
 }
