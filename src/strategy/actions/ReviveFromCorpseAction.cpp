@@ -22,18 +22,11 @@ bool ReviveFromCorpseAction::Execute(Event event)
 
     // follow master when master revives
     WorldPacket& p = event.getPacket();
-    if (!p.empty() && p.GetOpcode() == CMSG_RECLAIM_CORPSE && master && !corpse && bot->IsAlive())
+    if (!p.empty() && p.GetOpcode() == CMSG_RECLAIM_CORPSE && master && bot->IsAlive())
     {
-        if (sServerFacade->IsDistanceLessThan(AI_VALUE2(float, "distance", "master target"),
-                                              sPlayerbotAIConfig->farDistance))
-        {
-            if (!botAI->HasStrategy("follow", BOT_STATE_NON_COMBAT))
-            {
-                botAI->TellMasterNoFacing("Welcome back!");
-                botAI->ChangeStrategy("+follow,-stay", BOT_STATE_NON_COMBAT);
-                return true;
-            }
-        }
+        botAI->TellMasterNoFacing("Welcome back!");
+        botAI->ChangeStrategy("+follow,-stay", BOT_STATE_NON_COMBAT);
+        return true;
     }
 
     if (!corpse)
