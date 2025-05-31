@@ -388,6 +388,8 @@ bool TeleportToMaster::Execute(Event event)
         master->GetOrientation()
     );
 
+    botAI->ChangeStrategy("+follow,-stay", BOT_STATE_NON_COMBAT);
+
     return true;
 }
 
@@ -397,7 +399,7 @@ bool TeleportToMaster::isUseful()
     if (!master)
         return false;
 
-    if (!master->IsAlive() || !master->IsInWorld() || master->IsFlying())
+    if (!master->IsAlive() || !master->IsInWorld() || master->IsFlying() || bot->IsFlying())
         return false;
 
     if (!bot || !bot->IsAlive() || bot->IsInCombat())
@@ -443,6 +445,8 @@ bool ReviveToMaster::Execute(Event event)
         );
     }
 
+    botAI->ChangeStrategy("+follow,-stay", BOT_STATE_NON_COMBAT);
+
     return true;
 }
 
@@ -452,13 +456,13 @@ bool ReviveToMaster::isUseful()
     if (!master)
         return false;
 
-    if (!master->IsAlive() || !master->IsInWorld() || master->IsInCombat())
+    if (!master->IsAlive() || !master->IsInWorld() || master->IsFlying() /*|| master->IsInCombat()*/)
         return false;
 
     if (!bot)
         return false;
 
-    if (bot->IsAlive() || bot->HasGhostAura())
+    if (bot->IsAlive())
         return false;
 
     if (bot->InBattleground() || bot->InArena())
