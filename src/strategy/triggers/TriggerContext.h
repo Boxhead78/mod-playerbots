@@ -327,7 +327,7 @@ private:
     static Trigger* veryOften(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "very often", 1); }
     static Trigger* RandomLFG(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "random lfg", 75); }
     static Trigger* RandomLFGLeave(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "random lfg leave", 1200); }
-    static Trigger* RandomChat(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "random chat", 1500); }
+    static Trigger* RandomChat(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "random chat", 3000); }
     static Trigger* GenerateEquipmentTrigger(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "generate equipment trigger", 6000); }
     static Trigger* EnemyOutOfMelee(PlayerbotAI* botAI) { return new EnemyOutOfMeleeTrigger(botAI); }
     static Trigger* EnemyOutOfSpell(PlayerbotAI* botAI) { return new EnemyOutOfSpellRangeTrigger(botAI); }
