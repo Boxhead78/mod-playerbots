@@ -1,6 +1,8 @@
 
 #include "RaidUlduarActions.h"
 
+#include <FollowMasterStrategy.h>
+
 #include <cmath>
 
 #include "AiObjectContext.h"
@@ -25,6 +27,9 @@
 #include "Unit.h"
 #include "Vehicle.h"
 
+const std::string ADD_STRATEGY_CHAR = "+";
+const std::string REMOVE_STRATEGY_CHAR = "-";
+
 const std::vector<uint32> availableVehicles = {NPC_VEHICLE_CHOPPER, NPC_SALVAGED_DEMOLISHER,
                                                NPC_SALVAGED_DEMOLISHER_TURRET, NPC_SALVAGED_SIEGE_ENGINE,
                                                NPC_SALVAGED_SIEGE_ENGINE_TURRET};
@@ -32,8 +37,11 @@ const std::vector<uint32> availableVehicles = {NPC_VEHICLE_CHOPPER, NPC_SALVAGED
 const std::vector<Position> corners = {
     {183.53f, 66.53f, 409.80f}, {383.03f, 75.10f, 411.71f}, {379.74f, -133.05f, 410.88f}, {158.67f, -137.54f, 409.80f}};
 
-const Position ULDUAR_KOLOGARN_CRUNCH_ARMOR_RESET_SPOT = Position(1752.4803f, -43.44299f, 448.805f);
-const Position ULDUAR_KOLOGARN_RESTORE_POSITION = Position(1764.3749f, -24.02903f, 448.0f, 0.00087690353);
+const Position ULDUAR_KOLOGARN_RESTORE_POSITION = Position(1764.3749f, -24.02903f, 448.0f, 0.00087690353f);
+const Position ULDUAR_KOLOGARN_EYEBEAM_LEFT_POSITION = Position(1781.2051f, 9.34402f, 449.0f, 0.00087690353f);
+const Position ULDUAR_KOLOGARN_EYEBEAM_RIGHT_POSITION = Position(1763.2561f, -24.44305f, 449.0f, 0.00087690353f);
+const Position ULDUAR_THORIM_JUMP_START_POINT = Position(2137.137f, -291.19025f, 438.24753f, 1.7059844f);
+const Position ULDUAR_THORIM_JUMP_END_POINT = Position(2137.8818f, -278.18942f, 419.66653f);
 
 bool FlameLeviathanVehicleAction::Execute(Event event)
 {
@@ -1214,6 +1222,21 @@ bool IronAssemblyOverloadAction::Execute(Event event)
     return false;
 }
 
+bool IronAssemblyRuneOfPowerAction::isUseful()
+{
+    IronAssemblyRuneOfPowerTrigger ironAssemblyRuneOfPowerTrigger(botAI);
+    return ironAssemblyRuneOfPowerTrigger.IsActive();
+}
+
+bool IronAssemblyRuneOfPowerAction::Execute(Event event)
+{
+    Unit* target = botAI->GetUnit(bot->GetTarget());
+    if (!target || !target->IsAlive())
+        return false;
+
+    return MoveAway(target, 10.0f, true);
+}
+
 bool KologarnMarkDpsTargetAction::isUseful()
 {
     KologarnMarkDpsTargetTrigger kologarnMarkDpsTargetTrigger(botAI);
@@ -1223,9 +1246,15 @@ bool KologarnMarkDpsTargetAction::isUseful()
 bool KologarnMarkDpsTargetAction::Execute(Event event)
 {
     Unit* targetToMark = nullptr;
+    Unit* additionalTargetToMark = nullptr;
     Unit* targetToCcMark = nullptr;
     int8 skullIndex = 7;  // Skull
+    int8 crossIndex = 6;  // Cross
     int8 moonIndex = 4;   // Moon
+
+    Unit* boss = AI_VALUE2(Unit*, "find target", "kologarn");
+    if (!boss || !boss->IsAlive())
+        return false;
 
     // Check that there is rubble to mark
     GuidVector targets = AI_VALUE(GuidVector, "possible targets");
@@ -1240,6 +1269,7 @@ bool KologarnMarkDpsTargetAction::Execute(Event event)
         if (target->GetEntry() == NPC_RUBBLE && target->IsAlive())
         {
             targetToMark = target;
+            additionalTargetToMark = boss;
         }
     }
 
@@ -1249,6 +1279,7 @@ bool KologarnMarkDpsTargetAction::Execute(Event event)
         if (rightArm && rightArm->IsAlive())
         {
             targetToMark = rightArm;
+            additionalTargetToMark = boss;
         }
     }
 
@@ -1291,7 +1322,11 @@ bool KologarnMarkDpsTargetAction::Execute(Event event)
                     {
                         group->SetTargetIcon(moonIndex, bot->GetGUID(), targetToCcMark->GetGUID());
                     }
-                    
+                    if (additionalTargetToMark)
+                    {
+                        group->SetTargetIcon(crossIndex, bot->GetGUID(), additionalTargetToMark->GetGUID());
+                    }
+
                     return true;
                 }
                 break;  // Stop after finding the first valid bot tank
@@ -1307,6 +1342,10 @@ bool KologarnMarkDpsTargetAction::Execute(Event event)
             if (targetToCcMark)
             {
                 group->SetTargetIcon(moonIndex, bot->GetGUID(), targetToCcMark->GetGUID());
+            }
+            if (additionalTargetToMark)
+            {
+                group->SetTargetIcon(crossIndex, bot->GetGUID(), additionalTargetToMark->GetGUID());
             }
             return true;
         }
@@ -1324,6 +1363,10 @@ bool KologarnMarkDpsTargetAction::Execute(Event event)
                     if (targetToCcMark)
                     {
                         group->SetTargetIcon(moonIndex, bot->GetGUID(), targetToCcMark->GetGUID());
+                    }
+                    if (additionalTargetToMark)
+                    {
+                        group->SetTargetIcon(crossIndex, bot->GetGUID(), additionalTargetToMark->GetGUID());
                     }
                     return true;
                 }
@@ -1362,6 +1405,101 @@ bool KologarnRubbleSlowdownAction::Execute(Event event)
         return false;
 
     return botAI->CastSpell("frost trap", currentSkullUnit);
+}
+
+bool KologarnEyebeamAction::Execute(Event event)
+{
+    float distanceToLeftPoint = bot->GetExactDist(ULDUAR_KOLOGARN_EYEBEAM_LEFT_POSITION);
+    float distanceToRightPoint = bot->GetExactDist(ULDUAR_KOLOGARN_EYEBEAM_RIGHT_POSITION);
+
+    bool runToLeftSide;
+    if (!distanceToLeftPoint)
+    {
+        runToLeftSide = true;
+    }
+    else if (!distanceToRightPoint)
+    {
+        runToLeftSide = false;
+    }
+    else
+    {
+        runToLeftSide = distanceToRightPoint > distanceToLeftPoint;
+    }
+
+    bool teleportedToPoint;
+    KologarnEyebeamTrigger kologarnEyebeamTrigger(botAI);
+    if (runToLeftSide)
+    {
+        teleportedToPoint = bot->TeleportTo(bot->GetMapId(), ULDUAR_KOLOGARN_EYEBEAM_LEFT_POSITION.GetPositionX(),
+                                            ULDUAR_KOLOGARN_EYEBEAM_LEFT_POSITION.GetPositionY(),
+                                            ULDUAR_KOLOGARN_EYEBEAM_LEFT_POSITION.GetPositionZ(),
+                                            ULDUAR_KOLOGARN_EYEBEAM_LEFT_POSITION.GetOrientation());
+    }
+    else
+    {
+        teleportedToPoint = bot->TeleportTo(bot->GetMapId(), ULDUAR_KOLOGARN_EYEBEAM_RIGHT_POSITION.GetPositionX(),
+                                            ULDUAR_KOLOGARN_EYEBEAM_RIGHT_POSITION.GetPositionY(),
+                                            ULDUAR_KOLOGARN_EYEBEAM_RIGHT_POSITION.GetPositionZ(),
+                                            ULDUAR_KOLOGARN_EYEBEAM_RIGHT_POSITION.GetOrientation());
+    }
+
+    if (teleportedToPoint)
+        SetNextMovementDelay(5000);
+
+    return teleportedToPoint;
+}
+
+bool KologarnEyebeamAction::isUseful()
+{
+    KologarnEyebeamTrigger kologarnEyebeamTrigger(botAI);
+    return kologarnEyebeamTrigger.IsActive();
+}
+
+bool KologarnRtiTargetAction::isUseful()
+{
+    KologarnRtiTargetTrigger kologarnRtiTargetTrigger(botAI);
+    return kologarnRtiTargetTrigger.IsActive();
+}
+
+bool KologarnRtiTargetAction::Execute(Event event)
+{
+    if (botAI->IsMainTank(bot) || botAI->IsAssistTankOfIndex(bot, 0))
+    {
+        context->GetValue<std::string>("rti")->Set("cross");
+        return true;
+    }
+
+    context->GetValue<std::string>("rti")->Set("skull");
+    return true;
+}
+
+bool KologarnCrunchArmorAction::isUseful()
+{
+    KologarnCrunchArmorTrigger kologarnCrunchArmorTrigger(botAI);
+    return kologarnCrunchArmorTrigger.IsActive();
+}
+
+bool KologarnCrunchArmorAction::Execute(Event event)
+{
+    bot->RemoveAura(SPELL_CRUNCH_ARMOR);
+    return true;
+}
+
+bool AuriayaFallFromFloorAction::Execute(Event event)
+{
+    Player* master = botAI->GetMaster();
+
+    if (!master)
+        return false;
+
+    return bot->TeleportTo(bot->GetMapId(), master->GetPositionX(), master->GetPositionY(), master->GetPositionZ(),
+                           master->GetOrientation());
+}
+
+bool AuriayaFallFromFloorAction::isUseful()
+{
+    AuriayaFallFromFloorTrigger auriayaFallFromFloorTrigger(botAI);
+    return auriayaFallFromFloorTrigger.IsActive();
 }
 
 bool HodirMoveSnowpackedIcicleAction::isUseful()
@@ -1574,7 +1712,7 @@ bool FreyaMarkDpsTargetAction::Execute(Event event)
     Unit* mainTankUnit = AI_VALUE(Unit*, "main tank");
     Player* mainTank = mainTankUnit ? mainTankUnit->ToPlayer() : nullptr;
     int8 squareIndex = 5;  // Square
-    int8 skullIndex = 7;  // Skull
+    int8 skullIndex = 7;   // Skull
 
     if (mainTank && !GET_PLAYERBOT_AI(mainTank))  // Main tank is a real player
     {
@@ -1587,7 +1725,7 @@ bool FreyaMarkDpsTargetAction::Execute(Event event)
                 if (group)
                 {
                     ObjectGuid currentSkullTarget = group->GetTargetIcon(skullIndex);
-    
+
                     if (!currentSkullTarget || (targetToMark->GetGUID() != currentSkullTarget))
                     {
                         group->SetTargetIcon(skullIndex, bot->GetGUID(), targetToMark->GetGUID());
@@ -1605,7 +1743,7 @@ bool FreyaMarkDpsTargetAction::Execute(Event event)
         if (group)
         {
             ObjectGuid currentSkullTarget = group->GetTargetIcon(skullIndex);
-    
+
             if (!currentSkullTarget || (targetToMark->GetGUID() != currentSkullTarget))
             {
                 group->SetTargetIcon(skullIndex, bot->GetGUID(), targetToMark->GetGUID());
@@ -1654,4 +1792,397 @@ bool FreyaMoveToHealingSporeAction::Execute(Event event)
 
     return MoveTo(nearestSpore->GetMapId(), nearestSpore->GetPositionX(), nearestSpore->GetPositionY(),
                   nearestSpore->GetPositionZ(), false, false, false, true, MovementPriority::MOVEMENT_COMBAT);
+}
+
+bool ThorimUnbalancingStrikeAction::isUseful()
+{
+    ThorimUnbalancingStrikeTrigger thorimUnbalancingStrikeTrigger(botAI);
+    return thorimUnbalancingStrikeTrigger.IsActive();
+}
+
+bool ThorimUnbalancingStrikeAction::Execute(Event event)
+{
+    bot->RemoveAura(SPELL_UNBALANCING_STRIKE);
+    return true;
+}
+
+bool ThorimMarkDpsTargetAction::isUseful()
+{
+    ThorimMarkDpsTargetTrigger thorimMarkDpsTargetTrigger(botAI);
+    return thorimMarkDpsTargetTrigger.IsActive();
+}
+
+bool ThorimMarkDpsTargetAction::Execute(Event event)
+{
+    Unit* targetToMark = nullptr;
+
+    Group* group = bot->GetGroup();
+    if (!group)
+        return false;
+
+    ObjectGuid currentMoonTarget = group->GetTargetIcon(moonIndex);
+    Unit* currentMoonUnit = botAI->GetUnit(currentMoonTarget);
+    Unit* boss = AI_VALUE2(Unit*, "find target", "thorim");
+    if (!currentMoonUnit && boss && boss->IsAlive() && boss->GetPositionZ() > ULDUAR_THORIM_AXIS_Z_FLOOR_THRESHOLD)
+    {
+        group->SetTargetIcon(moonIndex, bot->GetGUID(), boss->GetGUID());
+    }
+
+    if (currentMoonUnit && boss && currentMoonUnit->GetEntry() == boss->GetEntry() &&
+        boss->GetPositionZ() < ULDUAR_THORIM_AXIS_Z_FLOOR_THRESHOLD)
+    {
+        group->SetTargetIcon(skullIndex, bot->GetGUID(), boss->GetGUID());
+        return true;
+    }
+
+    if (botAI->IsMainTank(bot))
+    {
+        ObjectGuid currentSkullTarget = group->GetTargetIcon(skullIndex);
+        Unit* currentSkullUnit = botAI->GetUnit(currentSkullTarget);
+        if (currentSkullUnit && !currentSkullUnit->IsAlive())
+        {
+            currentSkullUnit = nullptr;
+        }
+
+        Unit* acolyte = AI_VALUE2(Unit*, "find target", "dark rune acolyte");
+        Unit* evoker = AI_VALUE2(Unit*, "find target", "dark rune evoker");
+
+        if (acolyte && acolyte->IsAlive() && bot->GetDistance(acolyte) < 50.0f &&
+            (!currentSkullUnit || currentSkullUnit->GetEntry() != acolyte->GetEntry()))
+            targetToMark = acolyte;
+        else if (evoker && evoker->IsAlive() && bot->GetDistance(evoker) < 50.0f &&
+            (!currentSkullUnit || currentSkullUnit->GetEntry() != evoker->GetEntry()))
+            targetToMark = evoker;
+        else
+            return false;
+    }
+    else if (botAI->IsAssistTankOfIndex(bot, 0))
+    {
+        ObjectGuid currentCrossTarget = group->GetTargetIcon(crossIndex);
+        Unit* currentCrossUnit = botAI->GetUnit(currentCrossTarget);
+        if (currentCrossUnit && !currentCrossUnit->IsAlive())
+        {
+            currentCrossUnit = nullptr;
+        }
+
+        Unit* acolyte = AI_VALUE2(Unit*, "find target", "dark rune acolyte");
+        Unit* runicColossus = AI_VALUE2(Unit*, "find target", "runic colossus");
+        Unit* ancientRuneGiant = AI_VALUE2(Unit*, "find target", "ancient rune giant");
+        Unit* ironHonorGuard = AI_VALUE2(Unit*, "find target", "iron ring guard");
+        Unit* ironRingGuard = AI_VALUE2(Unit*, "find target", "iron honor guard");
+
+        if (acolyte && acolyte->IsAlive() && (!currentCrossUnit || currentCrossUnit->GetEntry() != acolyte->GetEntry()))
+            targetToMark = acolyte;
+        else if (runicColossus && runicColossus->IsAlive() &&
+                 (!currentCrossUnit || currentCrossUnit->GetEntry() != runicColossus->GetEntry()))
+            targetToMark = runicColossus;
+        else if (ancientRuneGiant && ancientRuneGiant->IsAlive() &&
+                 (!currentCrossUnit || currentCrossUnit->GetEntry() != ancientRuneGiant->GetEntry()))
+            targetToMark = ancientRuneGiant;
+        else if (ironHonorGuard && ironHonorGuard->IsAlive() &&
+                 (!currentCrossUnit || currentCrossUnit->GetEntry() != ironHonorGuard->GetEntry()))
+            targetToMark = ironHonorGuard;
+        else if (ironRingGuard && ironRingGuard->IsAlive() &&
+                 (!currentCrossUnit || currentCrossUnit->GetEntry() != ironRingGuard->GetEntry()))
+            targetToMark = ironRingGuard;
+        else
+            return false;
+    }
+
+    if (!targetToMark)
+        return false;  // No target to mark
+
+    if (botAI->IsMainTank(bot))
+    {
+        group->SetTargetIcon(skullIndex, bot->GetGUID(), targetToMark->GetGUID());
+        return true;
+    }
+
+    if (botAI->IsAssistTankOfIndex(bot, 0))
+    {
+        group->SetTargetIcon(crossIndex, bot->GetGUID(), targetToMark->GetGUID());
+        return true;
+    }
+
+    return false;
+}
+
+bool ThorimArenaPositioningAction::isUseful()
+{
+    ThorimArenaPositioningTrigger thorimArenaPositioningTrigger(botAI);
+    return thorimArenaPositioningTrigger.IsActive();
+}
+
+bool ThorimArenaPositioningAction::Execute(Event event)
+{
+    FollowMasterStrategy followMasterStrategy(botAI);
+
+    MoveTo(bot->GetMapId(), ULDUAR_THORIM_NEAR_ARENA_CENTER.GetPositionX(),
+           ULDUAR_THORIM_NEAR_ARENA_CENTER.GetPositionY(), ULDUAR_THORIM_NEAR_ARENA_CENTER.GetPositionZ(), false, false,
+           false, true, MovementPriority::MOVEMENT_COMBAT, true);
+
+    if (botAI->HasStrategy(followMasterStrategy.getName(), BotState::BOT_STATE_NON_COMBAT))
+    {
+        botAI->ChangeStrategy(REMOVE_STRATEGY_CHAR + followMasterStrategy.getName(), BotState::BOT_STATE_NON_COMBAT);
+    }
+
+    return true;
+}
+
+bool ThorimGauntletPositioningAction::isUseful()
+{
+    ThorimGauntletPositioningTrigger thorimGauntletPositioningTrigger(botAI);
+    return thorimGauntletPositioningTrigger.IsActive();
+}
+
+bool ThorimGauntletPositioningAction::Execute(Event event)
+{
+    FollowMasterStrategy followMasterStrategy(botAI);
+
+    Unit* master = botAI->GetMaster();
+
+    std::string const rti = AI_VALUE(std::string, "rti");
+    if (rti != "cross")
+    {
+        botAI->GetAiObjectContext()->GetValue<std::string>("rti")->Set("cross");
+    }
+
+    if (master->GetDistance(ULDUAR_THORIM_NEAR_ENTRANCE_POSITION) < 10.0f && (bot->GetDistance2d(master) > 5.0f))
+    {
+        if (MoveTo(bot->GetMapId(), master->GetPositionX(), master->GetPositionY(), master->GetPositionZ(), false,
+                   false, false, true, MovementPriority::MOVEMENT_NORMAL, true))
+        {
+            if (!botAI->HasStrategy(followMasterStrategy.getName(), BotState::BOT_STATE_NON_COMBAT))
+            {
+                botAI->ChangeStrategy(ADD_STRATEGY_CHAR + followMasterStrategy.getName(),
+                                      BotState::BOT_STATE_NON_COMBAT);
+            }
+
+            return true;
+        }
+    }
+
+    if (master->GetDistance(ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_6_YARDS_1) < 6.0f ||
+        master->GetDistance(ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_6_YARDS_2) < 6.0f ||
+        master->GetDistance(ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_5_YARDS_1) < 5.0f ||
+        master->GetDistance(ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_10_YARDS_1) < 10.0f ||
+        master->GetDistance(ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_10_YARDS_2) < 10.0f ||
+        master->GetDistance(ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_10_YARDS_3) < 10.0f)
+    {
+        float distance1 = master->GetDistance(ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_6_YARDS_1);
+        float distance2 = master->GetDistance(ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_6_YARDS_2);
+        float distance3 = master->GetDistance(ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_5_YARDS_1);
+        float distance4 = master->GetDistance(ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_10_YARDS_1);
+        float distance5 = master->GetDistance(ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_10_YARDS_2);
+        float distance6 = master->GetDistance(ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_10_YARDS_3);
+
+        float smallestDistance = std::min({distance1, distance2, distance3, distance4, distance5, distance6});
+
+        Position targetPosition;
+
+        if (smallestDistance == distance1)
+        {
+            return MoveTo(bot->GetMapId(), ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_6_YARDS_1.GetPositionX(),
+                          ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_6_YARDS_1.GetPositionY(),
+                          ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_6_YARDS_1.GetPositionZ(), false, false, false, true,
+                          MovementPriority::MOVEMENT_NORMAL, true);
+        }
+        else if (smallestDistance == distance2)
+        {
+            return MoveTo(bot->GetMapId(), ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_6_YARDS_2.GetPositionX(),
+                          ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_6_YARDS_2.GetPositionY(),
+                          ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_6_YARDS_2.GetPositionZ(), false, false, false, true,
+                          MovementPriority::MOVEMENT_COMBAT);
+        }
+        else if (smallestDistance == distance3)
+        {
+            return MoveTo(bot->GetMapId(), ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_5_YARDS_1.GetPositionX(),
+                          ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_5_YARDS_1.GetPositionY(),
+                          ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_5_YARDS_1.GetPositionZ(), false, false, false, true,
+                          MovementPriority::MOVEMENT_NORMAL, true);
+        }
+        else if (smallestDistance == distance4)
+        {
+            return MoveTo(bot->GetMapId(), ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_10_YARDS_1.GetPositionX(),
+                          ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_10_YARDS_1.GetPositionY(),
+                          ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_10_YARDS_1.GetPositionZ(), false, false, false, true,
+                          MovementPriority::MOVEMENT_NORMAL, true);
+        }
+        else if (smallestDistance == distance5)
+        {
+            return MoveTo(bot->GetMapId(), ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_10_YARDS_2.GetPositionX(),
+                          ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_10_YARDS_2.GetPositionY(),
+                          ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_10_YARDS_2.GetPositionZ(), false, false, false, true,
+                          MovementPriority::MOVEMENT_NORMAL, true);
+        }
+        else if (smallestDistance == distance6)
+        {
+            return MoveTo(bot->GetMapId(), ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_10_YARDS_3.GetPositionX(),
+                          ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_10_YARDS_3.GetPositionY(),
+                          ULDUAR_THORIM_GAUNTLET_LEFT_SIDE_10_YARDS_3.GetPositionZ(), false, false, false, true,
+                          MovementPriority::MOVEMENT_NORMAL, true);
+        }
+        else
+            return false;
+    }
+
+    if (master->GetDistance(ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_6_YARDS_1) < 6.0f ||
+        master->GetDistance(ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_6_YARDS_2) < 6.0f ||
+        master->GetDistance(ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_5_YARDS_1) < 5.0f ||
+        master->GetDistance(ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_10_YARDS_1) < 10.0f ||
+        master->GetDistance(ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_10_YARDS_2) < 10.0f ||
+        master->GetDistance(ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_10_YARDS_3) < 10.0f)
+    {
+        float distance1 = master->GetDistance(ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_6_YARDS_1);
+        float distance2 = master->GetDistance(ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_6_YARDS_2);
+        float distance3 = master->GetDistance(ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_5_YARDS_1);
+        float distance4 = master->GetDistance(ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_10_YARDS_1);
+        float distance5 = master->GetDistance(ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_10_YARDS_2);
+        float distance6 = master->GetDistance(ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_10_YARDS_3);
+
+        float smallestDistance = std::min({distance1, distance2, distance3, distance4, distance5, distance6});
+
+        Position targetPosition;
+
+        if (smallestDistance == distance1)
+        {
+            return MoveTo(bot->GetMapId(), ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_6_YARDS_1.GetPositionX(),
+                          ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_6_YARDS_1.GetPositionY(),
+                          ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_6_YARDS_1.GetPositionZ(), false, false, false, true,
+                          MovementPriority::MOVEMENT_NORMAL, true);
+        }
+        else if (smallestDistance == distance2)
+        {
+            return MoveTo(bot->GetMapId(), ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_6_YARDS_2.GetPositionX(),
+                          ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_6_YARDS_2.GetPositionY(),
+                          ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_6_YARDS_2.GetPositionZ(), false, false, false, true,
+                          MovementPriority::MOVEMENT_COMBAT);
+        }
+        else if (smallestDistance == distance3)
+        {
+            return MoveTo(bot->GetMapId(), ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_5_YARDS_1.GetPositionX(),
+                          ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_5_YARDS_1.GetPositionY(),
+                          ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_5_YARDS_1.GetPositionZ(), false, false, false, true,
+                          MovementPriority::MOVEMENT_NORMAL, true);
+        }
+        else if (smallestDistance == distance4)
+        {
+            return MoveTo(bot->GetMapId(), ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_10_YARDS_1.GetPositionX(),
+                          ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_10_YARDS_1.GetPositionY(),
+                          ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_10_YARDS_1.GetPositionZ(), false, false, false, true,
+                          MovementPriority::MOVEMENT_NORMAL, true);
+        }
+        else if (smallestDistance == distance5)
+        {
+            return MoveTo(bot->GetMapId(), ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_10_YARDS_2.GetPositionX(),
+                          ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_10_YARDS_2.GetPositionY(),
+                          ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_10_YARDS_2.GetPositionZ(), false, false, false, true,
+                          MovementPriority::MOVEMENT_NORMAL, true);
+        }
+        else if (smallestDistance == distance6)
+        {
+            return MoveTo(bot->GetMapId(), ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_10_YARDS_3.GetPositionX(),
+                          ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_10_YARDS_3.GetPositionY(),
+                          ULDUAR_THORIM_GAUNTLET_RIGHT_SIDE_10_YARDS_3.GetPositionZ(), false, false, false, true,
+                          MovementPriority::MOVEMENT_NORMAL, true);
+        }
+        else
+            return false;
+    }
+
+    Unit* boss = AI_VALUE2(Unit*, "find target", "thorim");
+    if (boss && boss->IsAlive() && bot->GetPositionZ() > ULDUAR_THORIM_AXIS_Z_FLOOR_THRESHOLD &&
+        boss->GetPositionZ() < ULDUAR_THORIM_AXIS_Z_FLOOR_THRESHOLD)
+    {
+        MoveTo(bot->GetMapId(), ULDUAR_THORIM_JUMP_START_POINT.GetPositionX(),
+                    ULDUAR_THORIM_JUMP_START_POINT.GetPositionY(), ULDUAR_THORIM_JUMP_START_POINT.GetPositionZ(), false,
+                    false, false, true, MovementPriority::MOVEMENT_NORMAL, true);
+
+        if (bot->GetDistance(ULDUAR_THORIM_JUMP_START_POINT) > 0.5f)
+            return false;
+
+        JumpTo(bot->GetMapId(), ULDUAR_THORIM_JUMP_END_POINT.GetPositionX(),
+               ULDUAR_THORIM_JUMP_END_POINT.GetPositionY(), ULDUAR_THORIM_JUMP_END_POINT.GetPositionZ(),
+               MovementPriority::MOVEMENT_COMBAT);
+    }
+
+    return false;
+}
+
+bool ThorimFallFromFloorAction::Execute(Event event)
+{
+    Player* master = botAI->GetMaster();
+
+    if (!master)
+        return false;
+
+    return bot->TeleportTo(bot->GetMapId(), master->GetPositionX(), master->GetPositionY(), master->GetPositionZ(),
+                           master->GetOrientation());
+}
+
+bool ThorimFallFromFloorAction::isUseful()
+{
+    ThorimFallFromFloorTrigger thorimFallFromFloorTrigger(botAI);
+    return thorimFallFromFloorTrigger.IsActive();
+}
+
+bool ThorimPhase2PositioningAction::Execute(Event event)
+{
+    Position targetPosition;
+    bool backward = false;
+
+    if (botAI->IsMainTank(bot))
+    {
+        targetPosition = ULDUAR_THORIM_PHASE2_TANK_SPOT;
+        backward = true;
+    }
+    else
+    {
+        Group* group = bot->GetGroup();
+        if (!group)
+            return false;
+
+        uint32 memberPositionNumber = 0;
+        for (GroupReference* gref = group->GetFirstMember(); gref; gref = gref->next())
+        {
+            Player* member = gref->GetSource();
+            if (!member)
+                continue;
+
+            if (botAI->IsRanged(member) || botAI->IsHeal(member))
+            {
+                if (bot->GetGUID() == member->GetGUID())
+                    break;
+
+                memberPositionNumber++;
+
+                if (memberPositionNumber == 3)
+                    memberPositionNumber = 0;
+            }
+        }
+
+        if (memberPositionNumber == 0)
+            targetPosition = ULDUAR_THORIM_PHASE2_RANGE1_SPOT;
+
+        if (memberPositionNumber == 1)
+            targetPosition = ULDUAR_THORIM_PHASE2_RANGE2_SPOT;
+
+        if (memberPositionNumber == 2)
+            targetPosition = ULDUAR_THORIM_PHASE2_RANGE3_SPOT;
+    }
+
+    MoveTo(bot->GetMapId(), targetPosition.GetPositionX(), targetPosition.GetPositionY(),
+            targetPosition.GetPositionZ(), false, false, false, true, MovementPriority::MOVEMENT_COMBAT, true,
+            backward);
+
+    if (bot->GetDistance(targetPosition) > 1.0f)
+        return false;
+
+    return true;
+}
+
+bool ThorimPhase2PositioningAction::isUseful()
+{
+    ThorimPhase2PositioningTrigger thorimPhase2PositioningTrigger(botAI);
+    return thorimPhase2PositioningTrigger.IsActive();
 }

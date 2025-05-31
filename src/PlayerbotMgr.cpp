@@ -9,7 +9,9 @@
 #include <cstring>
 #include <istream>
 #include <string>
+#include <openssl/sha.h>
 #include <unordered_set>
+#include <iomanip>
 
 #include "ChannelMgr.h"
 #include "CharacterCache.h"
@@ -93,21 +95,22 @@ void PlayerbotHolder::AddPlayerBot(ObjectGuid playerGuid, uint32 masterAccountId
     uint32 accountId = sCharacterCache->GetCharacterAccountIdByGuid(playerGuid);
     if (!accountId)
         return;
-    
+
     WorldSession* masterSession = masterAccountId ? sWorldSessionMgr->FindSession(masterAccountId) : nullptr;
     Player* masterPlayer = masterSession ? masterSession->GetPlayer() : nullptr;
 
     bool isRndbot = !masterAccountId;
     bool sameAccount = sPlayerbotAIConfig->allowAccountBots && accountId == masterAccountId;
     Guild* guild = masterPlayer ? sGuildMgr->GetGuildById(masterPlayer->GetGuildId()) : nullptr;
-    bool sameGuild = sPlayerbotAIConfig->allowGuildBots && guild && guild->GetMember(playerGuid); 
+    bool sameGuild = sPlayerbotAIConfig->allowGuildBots && guild && guild->GetMember(playerGuid);
     bool addClassBot = sRandomPlayerbotMgr->IsAddclassBot(playerGuid.GetCounter());
+    bool linkedAccount = sPlayerbotAIConfig->allowTrustedAccountBots && IsAccountLinked(accountId, masterAccountId);
 
     bool allowed = true;
     std::ostringstream out;
     std::string botName;
     sCharacterCache->GetCharacterNameByGuid(playerGuid, botName);
-    if (!isRndbot && !sameAccount && !sameGuild && !addClassBot)
+    if (!isRndbot && !sameAccount && !sameGuild && !addClassBot && !linkedAccount)
     {
         allowed = false;
         out << "Failure: You are not allowed to control bot " << botName.c_str();
@@ -144,11 +147,18 @@ void PlayerbotHolder::AddPlayerBot(ObjectGuid playerGuid, uint32 masterAccountId
     }
 
     botLoading.insert(playerGuid);
-    
+
     // Always login in with world session to avoid race condition
     sWorld->AddQueryHolderCallback(CharacterDatabase.DelayQueryHolder(holder))
         .AfterComplete([this](SQLQueryHolderBase const& holder)
                         { HandlePlayerBotLoginCallback(static_cast<PlayerbotLoginQueryHolder const&>(holder)); });
+}
+
+bool PlayerbotHolder::IsAccountLinked(uint32 accountId, uint32 linkedAccountId)
+{
+    QueryResult result = PlayerbotsDatabase.Query(
+        "SELECT 1 FROM playerbots_account_links WHERE account_id = {} AND linked_account_id = {}", accountId, linkedAccountId);
+    return result != nullptr;
 }
 
 void PlayerbotHolder::HandlePlayerBotLoginCallback(PlayerbotLoginQueryHolder const& holder)
@@ -181,7 +191,7 @@ void PlayerbotHolder::HandlePlayerBotLoginCallback(PlayerbotLoginQueryHolder con
     {
         LOG_DEBUG("mod-playerbots", "Master session found but no player is associated for master account ID: {}", masterAccount);
     }
-    
+
     sRandomPlayerbotMgr->OnPlayerLogin(bot);
     OnBotLogin(bot);
 
@@ -425,7 +435,7 @@ void PlayerbotHolder::DisablePlayerBot(ObjectGuid guid)
 
 void PlayerbotHolder::RemoveFromPlayerbotsMap(ObjectGuid guid)
 {
-    playerBots.erase(guid);   
+    playerBots.erase(guid);
 }
 
 Player* PlayerbotHolder::GetPlayerBot(ObjectGuid playerGuid) const
@@ -451,7 +461,7 @@ void PlayerbotHolder::OnBotLogin(Player* const bot)
 
     sPlayerbotsMgr->AddPlayerbotData(bot, true);
     playerBots[bot->GetGUID()] = bot;
-    
+
     OnBotLoginInternal(bot);
 
     PlayerbotAI* botAI = GET_PLAYERBOT_AI(bot);
@@ -463,11 +473,11 @@ void PlayerbotHolder::OnBotLogin(Player* const bot)
     }
 
     Player* master = botAI->GetMaster();
-    if (!master)
+	if (master)
     {
-        // Log a warning to indicate that the master is null
-        LOG_DEBUG("mod-playerbots", "Master is null for bot with GUID: {}", bot->GetGUID().GetRawValue());
-        return;
+        ObjectGuid masterGuid = master->GetGUID();
+        if (master->GetGroup() && !master->GetGroup()->IsLeader(masterGuid))
+            master->GetGroup()->ChangeLeader(masterGuid);
     }
 
     Group* group = bot->GetGroup();
@@ -486,7 +496,10 @@ void PlayerbotHolder::OnBotLogin(Player* const bot)
                     break;
                 }
             }
-            else
+
+			// Don't disband alt groups when master goes away
+            // Controlled by config
+            if (sPlayerbotAIConfig->KeepAltsInGroup())
             {
                 uint32 account = sCharacterCache->GetCharacterAccountIdByGuid(member);
                 if (!sPlayerbotAIConfig->IsInRandomAccountList(account))
@@ -674,8 +687,11 @@ std::string const PlayerbotHolder::ProcessBotCommand(std::string const cmd, Obje
             if (!accountId)
                 return "character not found";
 
-            if (!sPlayerbotAIConfig->allowAccountBots && accountId != masterAccountId)
-                return "you can only add bots from your own account";
+                if (!sPlayerbotAIConfig->allowAccountBots && accountId != masterAccountId &&
+                    !(sPlayerbotAIConfig->allowTrustedAccountBots && IsAccountLinked(accountId, masterAccountId)))
+                {
+                    return "you can only add bots from your own account or linked accounts";
+                }
         }
 
         AddPlayerBot(guid, masterAccountId);
@@ -701,12 +717,12 @@ std::string const PlayerbotHolder::ProcessBotCommand(std::string const cmd, Obje
 
     if (!bot)
         return "bot not found";
-    
+
     bool addClassBot = sRandomPlayerbotMgr->IsAddclassBot(guid.GetCounter());
 
     if (!addClassBot)
         return "ERROR: You can not use this command on non-addclass bot.";
-    
+
     if (!admin)
     {
         Player* master = ObjectAccessor::FindConnectedPlayer(masterguid);
@@ -732,7 +748,7 @@ std::string const PlayerbotHolder::ProcessBotCommand(std::string const cmd, Obje
             {
                 return "Initialization already in progress, please wait.";
             }
-            
+
             int gs;
             if (cmd == "init=white" || cmd == "init=common")
             {
@@ -1704,4 +1720,122 @@ PlayerbotMgr* PlayerbotsMgr::GetPlayerbotMgr(Player* player)
     }
 
     return nullptr;
+}
+
+void PlayerbotMgr::HandleSetSecurityKeyCommand(Player* player, const std::string& key)
+{
+    uint32 accountId = player->GetSession()->GetAccountId();
+
+    // Hash the security key using SHA-256
+    unsigned char hash[SHA256_DIGEST_LENGTH];
+    SHA256((unsigned char*)key.c_str(), key.size(), hash);
+
+    // Convert the hash to a hexadecimal string
+    std::ostringstream hashedKey;
+    for (int i = 0; i < SHA256_DIGEST_LENGTH; ++i)
+        hashedKey << std::hex << std::setw(2) << std::setfill('0') << (int)hash[i];
+
+    // Store the hashed key in the database
+    PlayerbotsDatabase.Execute(
+        "REPLACE INTO playerbots_account_keys (account_id, security_key) VALUES ({}, '{}')",
+        accountId, hashedKey.str());
+
+    ChatHandler(player->GetSession()).PSendSysMessage("Security key set successfully.");
+}
+
+void PlayerbotMgr::HandleLinkAccountCommand(Player* player, const std::string& accountName, const std::string& key)
+{
+    QueryResult result = LoginDatabase.Query("SELECT id FROM account WHERE username = '{}'", accountName);
+    if (!result)
+    {
+        ChatHandler(player->GetSession()).PSendSysMessage("Account not found.");
+        return;
+    }
+
+    Field* fields = result->Fetch();
+    uint32 linkedAccountId = fields[0].Get<uint32>();
+
+    result = PlayerbotsDatabase.Query("SELECT security_key FROM playerbots_account_keys WHERE account_id = {}", linkedAccountId);
+    if (!result)
+    {
+        ChatHandler(player->GetSession()).PSendSysMessage("Invalid security key.");
+        return;
+    }
+
+    // Hash the provided key
+    unsigned char hash[SHA256_DIGEST_LENGTH];
+    SHA256((unsigned char*)key.c_str(), key.size(), hash);
+
+    // Convert the hash to a hexadecimal string
+    std::ostringstream hashedKey;
+    for (int i = 0; i < SHA256_DIGEST_LENGTH; ++i)
+        hashedKey << std::hex << std::setw(2) << std::setfill('0') << (int)hash[i];
+
+    // Compare the hashed key with the stored hashed key
+    std::string storedKey = result->Fetch()->Get<std::string>();
+    if (hashedKey.str() != storedKey)
+    {
+        ChatHandler(player->GetSession()).PSendSysMessage("Invalid security key.");
+        return;
+    }
+
+    uint32 accountId = player->GetSession()->GetAccountId();
+    PlayerbotsDatabase.Execute(
+        "INSERT IGNORE INTO playerbots_account_links (account_id, linked_account_id) VALUES ({}, {})",
+        accountId, linkedAccountId);
+    PlayerbotsDatabase.Execute(
+        "INSERT IGNORE INTO playerbots_account_links (account_id, linked_account_id) VALUES ({}, {})",
+        linkedAccountId, accountId);
+
+    ChatHandler(player->GetSession()).PSendSysMessage("Account linked successfully.");
+}
+
+void PlayerbotMgr::HandleViewLinkedAccountsCommand(Player* player)
+{
+    uint32 accountId = player->GetSession()->GetAccountId();
+    QueryResult result = PlayerbotsDatabase.Query("SELECT linked_account_id FROM playerbots_account_links WHERE account_id = {}", accountId);
+
+    if (!result)
+    {
+        ChatHandler(player->GetSession()).PSendSysMessage("No linked accounts.");
+        return;
+    }
+
+    ChatHandler(player->GetSession()).PSendSysMessage("Linked accounts:");
+    do
+    {
+        Field* fields = result->Fetch();
+        uint32 linkedAccountId = fields[0].Get<uint32>();
+
+        QueryResult accountResult = LoginDatabase.Query("SELECT username FROM account WHERE id = {}", linkedAccountId);
+        if (accountResult)
+        {
+            Field* accountFields = accountResult->Fetch();
+            std::string username = accountFields[0].Get<std::string>();
+            ChatHandler(player->GetSession()).PSendSysMessage("- {}", username.c_str());
+        }
+        else
+        {
+            ChatHandler(player->GetSession()).PSendSysMessage("- Unknown account");
+        }
+    } while (result->NextRow());
+}
+
+void PlayerbotMgr::HandleUnlinkAccountCommand(Player* player, const std::string& accountName)
+{
+    QueryResult result = LoginDatabase.Query("SELECT id FROM account WHERE username = '{}'", accountName);
+    if (!result)
+    {
+        ChatHandler(player->GetSession()).PSendSysMessage("Account not found.");
+        return;
+    }
+
+    Field* fields = result->Fetch();
+    uint32 linkedAccountId = fields[0].Get<uint32>();
+    uint32 accountId = player->GetSession()->GetAccountId();
+
+    PlayerbotsDatabase.Execute("DELETE FROM playerbots_account_links WHERE (account_id = {} AND linked_account_id = {}) OR (account_id = {} AND linked_account_id = {})",
+                                accountId, linkedAccountId, linkedAccountId, accountId);
+
+    ChatHandler(player->GetSession()).PSendSysMessage("Account unlinked successfully.");
 }

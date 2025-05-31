@@ -19,8 +19,14 @@ bool ReleaseSpiritAction::Execute(Event event)
 {
     if (bot->IsAlive())
     {
-        botAI->TellMasterNoFacing("I am not dead, will wait here");
-        botAI->ChangeStrategy("-follow,+stay", BOT_STATE_NON_COMBAT);
+        if (!bot->InBattleground()) 
+        {
+            botAI->TellMasterNoFacing("I am not dead, will wait here");
+            // -follow in bg is overwriten each tick with +follow
+            // +stay in bg causes stuttering effect as bot is cycled between +stay and +follow each tick
+            botAI->ChangeStrategy("-follow,+stay", BOT_STATE_NON_COMBAT);
+        }
+
         return false;
     }
 
@@ -37,6 +43,7 @@ bool ReleaseSpiritAction::Execute(Event event)
     botAI->TellMasterNoFacing(message);
 
     IncrementDeathCount();
+    bot->DurabilityRepairAll(false, 1.0f, false);
     LogRelease("released");
 
     WorldPacket releasePacket(CMSG_REPOP_REQUEST);
@@ -73,6 +80,7 @@ void ReleaseSpiritAction::LogRelease(const std::string& releaseMsg, bool isAutoR
 bool AutoReleaseSpiritAction::Execute(Event event)
 {
     IncrementDeathCount();
+    bot->DurabilityRepairAll(false, 1.0f, false);
     LogRelease("auto released", true);
 
     WorldPacket packet(CMSG_REPOP_REQUEST);
