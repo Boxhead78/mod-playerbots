@@ -43,6 +43,7 @@ public:
         creators["random lfg"] = &TriggerContext::RandomLFG;
         creators["random lfg leave"] = &TriggerContext::RandomLFGLeave;
         creators["random chat"] = &TriggerContext::RandomChat;
+        creators["generate equipment trigger"] = &TriggerContext::GenerateEquipmentTrigger;
 
         creators["target critical health"] = &TriggerContext::TargetCriticalHealth;
 
@@ -327,6 +328,7 @@ private:
     static Trigger* RandomLFG(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "random lfg", 150); }
     static Trigger* RandomLFGLeave(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "random lfg leave", 1200); }
     static Trigger* RandomChat(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "random chat", 1500); }
+    static Trigger* GenerateEquipmentTrigger(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "generate equipment trigger", 6000); }
     static Trigger* EnemyOutOfMelee(PlayerbotAI* botAI) { return new EnemyOutOfMeleeTrigger(botAI); }
     static Trigger* EnemyOutOfSpell(PlayerbotAI* botAI) { return new EnemyOutOfSpellRangeTrigger(botAI); }
     static Trigger* enemy_too_close_for_spell(PlayerbotAI* botAI) { return new EnemyTooCloseForSpellTrigger(botAI); }

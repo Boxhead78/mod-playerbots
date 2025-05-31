@@ -503,3 +503,36 @@ bool CheckGroupMaster::isUseful()
 
     return false;
 }
+
+bool GenerateEquipment::Execute(Event event)
+{
+    botAI->DoSpecificAction("autogear");
+    botAI->DoSpecificAction("maintenance");
+
+    return true;
+}
+
+bool GenerateEquipment::isUseful()
+{
+    Player* master = botAI->GetMaster();
+    if (master)
+        return false;
+
+    if (!bot)
+        return false;
+
+    if (!sRandomPlayerbotMgr->IsRandomBot(bot))
+        return false;
+
+    if (!bot->IsAlive() || bot->IsInCombat())
+        return false;
+
+    Map* map = bot->GetMap();
+    if (!map)
+        return false;
+
+    if (bot->InBattleground() || bot->InArena() || map->IsDungeon() || map->IsRaid())
+        return false;
+
+    return true;
+}

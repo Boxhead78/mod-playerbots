@@ -325,6 +325,14 @@ public:
     bool isUseful() override;
 };
 
+class GenerateEquipment : public Action
+{
+public:
+    GenerateEquipment(PlayerbotAI* botAI) : Action(botAI, "generate equipment") {}
+    bool Execute(Event event) override;
+    bool isUseful() override;
+};
+
 class UseTrinketAction : public Action
 {
 public:

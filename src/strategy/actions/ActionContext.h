@@ -196,6 +196,7 @@ public:
         creators["teleport to master"] = &ActionContext::teleport_to_master;
         creators["revive to master"] = &ActionContext::revive_to_master;
         creators["check group"] = &ActionContext::check_group;
+        creators["generate equipment"] = &ActionContext::generate_equipment;
 
 
         // BG Tactics
@@ -389,6 +390,7 @@ private:
     static Action* teleport_to_master(PlayerbotAI* botAI) { return new TeleportToMaster(botAI); }
     static Action* revive_to_master(PlayerbotAI* botAI) { return new ReviveToMaster(botAI); }
     static Action* check_group(PlayerbotAI* botAI) { return new CheckGroupMaster(botAI); }
+    static Action* generate_equipment(PlayerbotAI* botAI) { return new GenerateEquipment(botAI); }
 
     // BG Tactics
     static Action* bg_tactics(PlayerbotAI* botAI) { return new BGTactics(botAI); }

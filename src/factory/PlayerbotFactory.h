@@ -148,6 +148,8 @@ public:
     void InitReputation();
     void InitAttunementQuests();
     void InitPotions();
+
+    static GearLevelRange GetGearGenerationLevelRange(uint32 level);
     
 private:
     void Prepare();
@@ -203,7 +205,6 @@ private:
     static std::unordered_map<uint32, std::vector<uint32>> trainerIdCache;
     static std::vector<uint32> enchantSpellIdCache;
     static std::vector<uint32> enchantGemIdCache;
-    static GearLevelRange GetGearGenerationLevelRange(uint32 level);
 
 protected:
     EnchantContainer m_EnchantContainer;
