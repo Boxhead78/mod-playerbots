@@ -11,6 +11,7 @@
 #include "Event.h"
 #include "GroupMgr.h"
 #include "PlayerbotAI.h"
+#include "PlayerbotFactory.h"
 #include "Playerbots.h"
 #include "PositionValue.h"
 #include "UpdateTime.h"
@@ -336,6 +337,9 @@ bool BGJoinAction::isUseful()
     if (bot->GetLevel() < 10)
         return false;
 
+    if (bot->GetAverageItemLevelForDF() < PlayerbotFactory::GetGearGenerationLevelRange(bot->GetLevel()).avg / 2)
+        return false;
+
     // do not try if with player master
     if (GET_PLAYERBOT_AI(bot)->HasActivePlayerMaster())
         return false;
@@ -584,7 +588,7 @@ bool FreeBGJoinAction::shouldJoinBg(BattlegroundQueueTypeId queueTypeId, Battleg
     if (bot->GetLevel() < 10)
         return false;
 
-    if (bot->GetAverageItemLevelForDF() < 10)
+    if (bot->GetAverageItemLevelForDF() < PlayerbotFactory::GetGearGenerationLevelRange(bot->GetLevel()).avg / 2)
         return false;
 
     // Check if bots should join Arena

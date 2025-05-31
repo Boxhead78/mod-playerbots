@@ -10,6 +10,7 @@
 #include "LFGMgr.h"
 #include "LFGPackets.h"
 #include "Opcodes.h"
+#include "PlayerbotFactory.h"
 #include "Playerbots.h"
 #include "World.h"
 #include "WorldPacket.h"
@@ -367,7 +368,7 @@ bool LfgJoinAction::isUseful()
     if (bot->GetLevel() < 15)
         return false;
 	
-    if (bot->GetAverageItemLevelForDF() < 10)
+    if (bot->GetAverageItemLevelForDF() < PlayerbotFactory::GetGearGenerationLevelRange(bot->GetLevel()).avg / 2)
         return false;
 
 	// don't use if active player master
