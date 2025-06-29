@@ -325,7 +325,7 @@ private:
     static Trigger* masterRevive(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "master revive", 60); }
     static Trigger* seldom(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "seldom", 300); }
     static Trigger* often(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "often", 5); }
-    static Trigger* very_often(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "often", 3); }
+    static Trigger* very_often(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "very often", 3); }
     static Trigger* very_frequent(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "very frequent", 1); }
     static Trigger* RandomLFG(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "random lfg", 75); }
     static Trigger* RandomLFGLeave(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "random lfg leave", 1200); }
