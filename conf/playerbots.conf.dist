@@ -123,7 +123,7 @@ AiPlayerbot.MaxAddedBots = 40
 
 # Enable/Disable creating bots by addclass command (0 = GM only, 1 = enabled)
 # Default: 1 (enabled)
-AiPlayerbot.AddClassCommand = 1
+AiPlayerbot.AddClassCommand = 0
 
 # Set the addclass command account pool size
 AiPlayerbot.AddClassAccountPoolSize = 50
@@ -141,30 +141,30 @@ AiPlayerbot.KeepAltsInGroup = 0
 AiPlayerbot.BotAutologin = 0
 
 # Allow/deny inviting altbots from the player's account
-AiPlayerbot.AllowAccountBots = 1
+AiPlayerbot.AllowAccountBots = 0
 
 # Allow/deny inviting altbots in the player's guild
-AiPlayerbot.AllowGuildBots = 1
+AiPlayerbot.AllowGuildBots = 0
 
 # Allow linking accounts for shared altbot control
-AiPlayerbot.AllowTrustedAccountBots = 1
+AiPlayerbot.AllowTrustedAccountBots = 0
 
 # Randombots will create guilds with nearby randombots
 # Note: currently, randombots will not invite more bots after a guild is created (i.e., randombot guilds will have only the 10 initial randombots needed to sign the charter)
 # Default: 0 (disabled)
-AiPlayerbot.RandomBotGuildNearby = 0
+AiPlayerbot.RandomBotGuildNearby = 1
 
 # Number of guilds created by randombots
-AiPlayerbot.RandomBotGuildCount = 20
+AiPlayerbot.RandomBotGuildCount = 50
 
 # Delete all randombot guilds if set to 1
 AiPlayerbot.DeleteRandomBotGuilds = 0
 
 # Randombots will invite players to groups/raids/guilds
-AiPlayerbot.RandomBotInvitePlayer = 0
+AiPlayerbot.RandomBotInvitePlayer = 1
 
 # Bots will chat in say/guild when they invite other bots to groups/raids/guilds
-AiPlayerbot.InviteChat = 0
+AiPlayerbot.InviteChat = 1
 
 # Bots will be automatically summoned to the player when they accept a group invitation
 AiPlayerbot.SummonWhenGroup = 1
@@ -179,7 +179,7 @@ AiPlayerbot.FreeFood = 1
 
 # Non-GM player can only use init=auto to initialize bots based on their own level and gearscore
 # Default: 0 (non-GM player can use any intialization commands)
-AiPlayerbot.AutoInitOnly = 0
+AiPlayerbot.AutoInitOnly = 1
 
 # The upper limit ratio of bot equipment level for init=auto
 # Default: 1.0 (same with the player)
@@ -200,11 +200,11 @@ AiPlayerbot.AutoTrainSpells = yes
 
 # Enable/Disable summoning bots when the master is in combat
 # Default: 1 (enabled)
-AiPlayerbot.AllowSummonInCombat = 1
+AiPlayerbot.AllowSummonInCombat = 0
 
 # Enable/Disable summoning bots when the master is dead
 # Default: 1 (enabled)
-AiPlayerbot.AllowSummonWhenMasterIsDead = 1
+AiPlayerbot.AllowSummonWhenMasterIsDead = 0
 
 # Enable/Disable summoning bots when they are dead (0 = only when the bots are ghosts, 1 = always)
 # Default: 1 (always)
@@ -288,11 +288,11 @@ AiPlayerbot.SayWhenCollectingItems = 1
 
 # Bots keep looting when loot system is set to free for all
 # Default: 0 (disabled)
-AiPlayerbot.FreeMethodLoot = 0
+AiPlayerbot.FreeMethodLoot = 1
 
 # Bots' loot roll level (0 = pass, 1 = greed, 2 = need)
 # Default: 1 (greed)
-AiPlayerbot.LootRollLevel = 1
+AiPlayerbot.LootRollLevel = 2
 
 #
 #
@@ -311,7 +311,7 @@ AiPlayerbot.IterationsPerTick = 10
 AiPlayerbot.GlobalCooldown = 500
 
 # Max wait time when moving
-AiPlayerbot.MaxWaitForMove = 5000
+AiPlayerbot.MaxWaitForMove = 250
 
 # Disable use of MoveSplinePath for bot movement, will result in more erratic bot movement but means stun/snare/root/etc will work on bots (they wont reliably work when MoveSplinePath is enabled, though slowing effects still work ok)
 # Default: 0 - MoveSplinePath enabled
@@ -439,7 +439,7 @@ AiPlayerbot.ApplyInstanceStrategies = 1
 AiPlayerbot.AutoAvoidAoe = 1
 
 # Only avoid aoe spells with a radius smaller than this value
-AiPlayerbot.MaxAoeAvoidRadius = 15.0
+AiPlayerbot.MaxAoeAvoidRadius = 41.0
 
 # A whitelist of aoe spell IDs that should not be avoided
 AiPlayerbot.AoeAvoidSpellWhitelist = 50759,57491,13810
@@ -467,15 +467,15 @@ AiPlayerbot.FleeingEnabled = 1
 
 # Enable/Disable maintenance command (learn all available spells and skills, supplement consumables, repair, enchant equipment if bot's level is above AiPlayerbot.MinEnchantingBotLevel)
 # Default: 1 (enabled)
-AiPlayerbot.MaintenanceCommand = 1
+AiPlayerbot.MaintenanceCommand = 0
 
 # Enable/Disable autogear command, auto upgrade player bots gears, the quality is limited by AutoGearQualityAverage and AutoGearScoreLimit
 # default: 1 (enable)
-AiPlayerbot.AutoGearCommand = 1
+AiPlayerbot.AutoGearCommand = 0
 
 # Enable/Disable autogear command on altbots
 # Default: 1 (enabled)
-AiPlayerbot.AutoGearCommandAltBots = 1
+AiPlayerbot.AutoGearCommandAltBots = 0
 
 # Equips quality limitation for auto gear command (1 = normal, 2 = uncommon, 3 = rare, 4 = epic, 5 = legendary)
 # default: 3 (rare)
@@ -534,7 +534,7 @@ AiPlayerbot.BotTaxiGapJitterMs = 100
 #
 
 # Enable/Disable randomly generated password for randombot accounts
-AiPlayerbot.RandomBotRandomPassword = 0
+AiPlayerbot.RandomBotRandomPassword = 1
 
 # Prefix for account names to create for randombots
 AiPlayerbot.RandomBotAccountPrefix = "rndbot"
@@ -548,7 +548,7 @@ AiPlayerbot.RandomBotMaxLevel = 80
 AiPlayerbot.SyncLevelWithPlayers = 0
 
 # Mark many quests ≤ bot level as complete (slows down bot creation)
-AiPlayerbot.PreQuests = 0
+AiPlayerbot.PreQuests = 1
 
 # Enable LFG for randombots
 AiPlayerbot.RandomBotJoinLfg = 1
@@ -634,7 +634,7 @@ AiPlayerbot.RandomGearScoreLimit = 0
 
 # Set minimum level of bots that will enchant their equipment (Maxlevel + 1 to disable)
 # Default: 60
-AiPlayerbot.MinEnchantingBotLevel = 60
+AiPlayerbot.MinEnchantingBotLevel = 10
 
 # Enable expansion limitation for bot enchants
 # If enabled, bots will not use TBC enchants until level 61 or WotLK enchanges until level 71
@@ -648,7 +648,7 @@ AiPlayerbot.LimitGearExpansion = 1
 
 # Chance randombot will have less-than-optimized generated gear
 # Set between 0 (0%) and 1 (100%)
-AiPlayerbot.RandomGearLoweringChance = 0
+AiPlayerbot.RandomGearLoweringChance = 25
 
 # Randombots check player's gearscore level and deny the group invitation if it's too low
 # Default: 0 (disabled)
@@ -703,10 +703,10 @@ AiPlayerbot.BotActiveAloneForceWhenInGuild = 1
 #   MaxLevel - only apply scaling when level is lower or equal of max(bot)Level
 #
 AiPlayerbot.botActiveAloneSmartScale = 1
-AiPlayerbot.botActiveAloneSmartScaleDiffLimitfloor = 25
-AiPlayerbot.botActiveAloneSmartScaleDiffLimitCeiling = 100
+AiPlayerbot.botActiveAloneSmartScaleDiffLimitfloor = 35
+AiPlayerbot.botActiveAloneSmartScaleDiffLimitCeiling = 170
 AiPlayerbot.botActiveAloneSmartScaleWhenMinLevel = 1
-AiPlayerbot.botActiveAloneSmartScaleWhenMaxLevel = 80
+AiPlayerbot.botActiveAloneSmartScaleWhenMaxLevel = 90
 
 #
 #
@@ -722,7 +722,7 @@ AiPlayerbot.botActiveAloneSmartScaleWhenMaxLevel = 80
 AiPlayerbot.RandomBotQuestIds = "7848,3802,5505,6502,7761,10277,10285,11492,24499,24511,24710,24712"
 
 # Randombots will group with nearby randombots to do shared quests
-AiPlayerbot.RandomBotGroupNearby = 0
+AiPlayerbot.RandomBotGroupNearby = 1
 
 # Randombots will pick quests on their own and try to complete them
 # Default: 1 (enabled)
@@ -799,7 +799,7 @@ AiPlayerbot.RandomBotMaps = 0,1,530,571
 
 # Probabilty bots teleport to banker (city)
 # Default: 0.25
-AiPlayerbot.ProbTeleToBankers = 0.25
+AiPlayerbot.ProbTeleToBankers = 0.1
 
 # How far randombots are teleported after death
 AiPlayerbot.RandomBotTeleportDistance = 100
@@ -1025,9 +1025,9 @@ AiPlayerbot.RandomBotAutoJoinBGRatedArena5v5Count = 1
 # Warning: Reinitializing bots completely resets them (command in game: .playerbots rndbot init)
 # Bots only join one arena team to avoid queueing issues. Take that into account when increasing count.
 # Default: 2v2: 10 (20 Bots), 3v3: 10 (30 bots), 5v5: 5 (25 bots)
-AiPlayerbot.RandomBotArenaTeam2v2Count = 10
-AiPlayerbot.RandomBotArenaTeam3v3Count = 10
-AiPlayerbot.RandomBotArenaTeam5v5Count = 5
+AiPlayerbot.RandomBotArenaTeam2v2Count = 30
+AiPlayerbot.RandomBotArenaTeam3v3Count = 30
+AiPlayerbot.RandomBotArenaTeam5v5Count = 15
 
 # Arena rating is randomized on team creation.
 # Default: Max: 2000, Min: 1000
@@ -1038,10 +1038,10 @@ AiPlayerbot.RandomBotArenaTeamMinRating = 1000
 AiPlayerbot.DeleteRandomBotArenaTeams = 0
 
 # PvP Restricted Zones (bots don't pvp)
-AiPlayerbot.PvpProhibitedZoneIds = "2255,656,2361,2362,2363,976,35,2268,3425,392,541,1446,3828,3712,3738,3565,3539,3623,4152,3988,4658,4284,4418,4436,4275,4323,4395,3703,4298,139"
+AiPlayerbot.PvpProhibitedZoneIds = "2255,656,2361,2362,2363,976,35,2268,3425,392,541,1446,3828,3712,3738,3565,3539,3623,4152,3988,4658,4284,4418,4275,4323,4395,3703,4298"
 
 # PvP Restricted Areas (bots don't pvp)
-AiPlayerbot.PvpProhibitedAreaIds = "27,976,35,392,2268,4161,4010,4317,4312"
+AiPlayerbot.PvpProhibitedAreaIds = "27,976,35,392,2268,4161,4010,4317,4312,174,5497"
 
 # Improve reaction speeds in battlegrounds and arenas (may cause lag)
 AiPlayerbot.FastReactInBG = 1
@@ -1690,11 +1690,11 @@ AiPlayerbot.CommandPrefix = ""
 AiPlayerbot.CommandSeparator = "\\\\"
 
 # Enable bots talking (say / yell / general chatting / lfg)
-AiPlayerbot.RandomBotTalk = 1
+AiPlayerbot.RandomBotTalk = 0
 # Enable playerbot emote
 AiPlayerbot.RandomBotEmote = 1
 # Enable dungeon suggestions for random bots
-AiPlayerbot.RandomBotSuggestDungeons = 1
+AiPlayerbot.RandomBotSuggestDungeons = 0
 # Bots greet players when invited
 AiPlayerbot.EnableGreet = 0
 # Chance to reply to toxic links with toxic links (0-100)
@@ -1720,7 +1720,7 @@ AiPlayerbot.RandomBotSayWithoutMaster = 1
 
 # Enable/disable broadcasts globally
 # Default: 1 (enabled)
-AiPlayerbot.EnableBroadcasts = 1
+AiPlayerbot.EnableBroadcasts = 0
 #
 # All broadcast chances should be in range 0-30000
 # Value of 0 will disable this particular broadcast
@@ -1864,14 +1864,14 @@ AiPlayerbot.SummonAtInnkeepersEnabled = 1
 # Custom                                     #
 ##############################################
 
-AiPlayerbot.HealMultiplier = 1.0
-AiPlayerbot.DamageMultiplier = 1.0
-AiPlayerbot.HPMultiplier = 1.0
-AiPlayerbot.ManaMultiplier = 1.0
-AiPlayerbot.DungeonRaidIncomingDamageMultiplier = 1.0
-AiPlayerbot.HPRegenMultiplier = 1.0
-AiPlayerbot.ManaRegenMultiplier = 1.0
-AiPlayerbot.ThreatTankMultiplier = 1.0
+AiPlayerbot.HealMultiplier = 1.1
+AiPlayerbot.DamageMultiplier = 1.2
+AiPlayerbot.HPMultiplier = 1.1
+AiPlayerbot.ManaMultiplier = 1.1
+AiPlayerbot.DungeonRaidIncomingDamageMultiplier = 0.60
+AiPlayerbot.HPRegenMultiplier = 1.5
+AiPlayerbot.ManaRegenMultiplier = 3.0
+AiPlayerbot.ThreatTankMultiplier = 1.5
 
 # Controlls if the playerbot amount is affected by the time of day
 AiPlayerbot.AmountToD = 1
