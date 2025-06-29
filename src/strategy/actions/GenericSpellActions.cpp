@@ -399,7 +399,8 @@ bool TeleportToMaster::isUseful()
     if (!master)
         return false;
 
-    if (!master->IsAlive() || !master->IsInWorld() || master->IsFlying() || bot->IsFlying())
+    if (!master->IsAlive() || !master->IsInWorld() || master->IsFlying() ||
+        master->HasUnitState(UNIT_STATE_IN_FLIGHT) || bot->IsFlying() || bot->HasUnitState(UNIT_STATE_IN_FLIGHT))
         return false;
 
     if (!bot || !bot->IsAlive() || bot->IsInCombat())
@@ -456,7 +457,8 @@ bool ReviveToMaster::isUseful()
     if (!master)
         return false;
 
-    if (!master->IsAlive() || !master->IsInWorld() || master->IsFlying() /*|| master->IsInCombat()*/)
+    if (!master->IsAlive() || !master->IsInWorld() || master->IsFlying() ||
+        master->HasUnitState(UNIT_STATE_IN_FLIGHT) || bot->IsFlying() || bot->HasUnitState(UNIT_STATE_IN_FLIGHT))
         return false;
 
     if (!bot)
