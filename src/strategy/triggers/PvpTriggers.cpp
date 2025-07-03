@@ -4,7 +4,7 @@
  */
 
 #include "PvpTriggers.h"
-
+#include "BattleGroundTactics.h"
 #include "BattlegroundEY.h"
 #include "BattlegroundMgr.h"
 #include "BattlegroundWS.h"
@@ -216,7 +216,6 @@ bool TeamHasFlag::IsActive()
     return ownTeamHasFlag && !enemyTeamHasFlag;
 }
 
-
 bool EnemyTeamHasFlag::IsActive()
 {
     if (botAI->GetBot()->InBattleground())
@@ -317,7 +316,7 @@ bool AllianceNoSnowfallGY::IsActive()
         return false;
 
     Battleground* bg = bot->GetBattleground();
-    if (bg && bg->GetBotStrategyForTeam(TEAM_ALLIANCE) != AV_STRATEGY_BALANCED)
+    if (bg && BGTactics::GetBotStrategyForTeam(bg, TEAM_ALLIANCE) != AV_STRATEGY_BALANCED)
         return false;
 
     float botX = bot->GetPositionX();
