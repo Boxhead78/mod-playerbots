@@ -82,8 +82,8 @@ AiPlayerbot.Enabled = 1
 
 # Enable randombot system
 AiPlayerbot.RandomBotAutologin = 1
-# Random bot count
 
+# Random bot count
 AiPlayerbot.MinRandomBots = 50
 AiPlayerbot.MaxRandomBots = 50
 
