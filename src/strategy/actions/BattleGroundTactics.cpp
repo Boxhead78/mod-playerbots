@@ -2167,8 +2167,6 @@ bool BGTactics::selectObjective(bool reset)
             uint8 role = context->GetValue<uint32>("bg role")->Get();
             WSBotStrategy strategyHorde = static_cast<WSBotStrategy>(GetBotStrategyForTeam(bg, TEAM_HORDE));
             WSBotStrategy strategyAlliance = static_cast<WSBotStrategy>(GetBotStrategyForTeam(bg, TEAM_ALLIANCE));
-            LOG_ERROR("scripts", "BG {} Bot Strategy Horde {}", bg->GetInstanceID(), strategyHorde);
-            LOG_ERROR("scripts", "BG {} Bot Strategy Alliance {}", bg->GetInstanceID(), strategyAlliance);
             WSBotStrategy strategy = (team == TEAM_ALLIANCE) ? strategyAlliance : strategyHorde;
             WSBotStrategy enemyStrategy = (team == TEAM_ALLIANCE) ? strategyHorde : strategyAlliance;
 
