@@ -81,7 +81,7 @@ bool LootRollAction::Execute(Event event)
                     break;
             }
         }
-        if (sPlayerbotAIConfig->lootRollLevel == 0)
+        if (sPlayerbotAIConfig->lootRollLevel == 0 || urand(1, 100) <= 15)
         {
             vote = PASS;
         }
@@ -196,12 +196,13 @@ bool CanBotUseToken(ItemTemplate const* proto, Player* bot)
     uint32 botClassMask = (1 << (bot->getClass() - 1));
 
     // Check if the bot's class is allowed to use the token
-    if (proto->AllowableClass & botClassMask)
+    // Return true only if both the class matches and the random chance succeeds
+    if ((proto->AllowableClass & botClassMask) && urand(1, 100) <= 33)
     {
-        return true; // Bot's class is eligible to use this token
+        return true;
     }
 
-    return false; // Bot's class cannot use this token
+    return false; // Neither allowed by class nor random chance
 }
 
 bool RollUniqueCheck(ItemTemplate const* proto, Player* bot)
