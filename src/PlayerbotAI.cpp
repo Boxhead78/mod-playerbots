@@ -57,6 +57,7 @@
 #include "Unit.h"
 #include "UpdateTime.h"
 #include "Vehicle.h"
+#include <GridNotifiers.h>
 
 const int SPELL_TITAN_GRIP = 49152;
 
@@ -6121,13 +6122,38 @@ uint32 PlayerbotAI::GetReactDelay()
 {
     uint32 base = sPlayerbotAIConfig->reactDelay;  // Default 100(ms)
 
+    bool inBG = bot->InBattleground() || bot->InArena();
+
+    if (inBG)
+    {
+        if (Battleground* bg = bot->GetBattleground())
+        {
+            bool hasRealPlayer = false;
+
+            for (const auto& playerPair : bg->GetPlayers())
+            {
+                if (Player* player = ObjectAccessor::FindConnectedPlayer(playerPair.first))
+                {
+                    if (!player->GetSession()->IsBot())
+                    {
+                        hasRealPlayer = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!hasRealPlayer)
+            {
+                return bot->IsInCombat() || currentState == BOT_STATE_COMBAT ? 5000 : 10000;
+            }
+        }
+    }
+
     // If dynamic react delay is disabled, use a static calculation
     if (!sPlayerbotAIConfig->dynamicReactDelay)
     {
         if (HasRealPlayerMaster())
             return base;
-
-        bool inBG = bot->InBattleground() || bot->InArena();
 
         if (sPlayerbotAIConfig->fastReactInBG && inBG)
             return base;
@@ -6144,26 +6170,15 @@ uint32 PlayerbotAI::GetReactDelay()
     }
 
     // Dynamic react delay calculation:
-
     if (HasRealPlayerMaster())
         return base;
 
-    bool inBG = bot->InBattleground() || bot->InArena();
-
     if (inBG)
-    {
-        if (bot->IsInCombat() || currentState == BOT_STATE_COMBAT)
-        {
-            return static_cast<uint32>(base * (sPlayerbotAIConfig->fastReactInBG ? 2.5f : 5.0f));
-        }
-        else
-        {
-            return static_cast<uint32>(base * (sPlayerbotAIConfig->fastReactInBG ? 1.0f : 10.0f));
-        }
-    }
+        return static_cast<uint32>(base * (sPlayerbotAIConfig->fastReactInBG ? 0.5f : 2.5f));
 
-    // When in combat, return 5 times the base
-    if (bot->IsInCombat() || currentState == BOT_STATE_COMBAT)
+
+    // When in combat or player nearby, return 5 times the base
+    if (bot->IsInCombat() || currentState == BOT_STATE_COMBAT || HasPlayerNearby(sPlayerbotAIConfig->BotActiveAloneForceWhenInRadius))
         return base * 5;
 
     // When not resting, return 10-30 times the base
