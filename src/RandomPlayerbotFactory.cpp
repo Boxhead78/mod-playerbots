@@ -177,7 +177,7 @@ RandomPlayerbotFactory::RandomPlayerbotFactory(uint32 accountId) : accountId(acc
         availableRaces[CLASS_DRUID].push_back(RACE_WORGEN);
     }
 
-    if (expansion == EXPANSION_WRATH_OF_THE_LICH_KING)
+    if (expansion >= EXPANSION_WRATH_OF_THE_LICH_KING)
     {
         availableRaces[CLASS_DEATH_KNIGHT].push_back(RACE_NIGHTELF);
         availableRaces[CLASS_DEATH_KNIGHT].push_back(RACE_TAUREN);
@@ -453,7 +453,7 @@ uint32 RandomPlayerbotFactory::CalculateTotalAccountCount()
         sPlayerbotAIConfig->addClassAccountPoolSize == 0)
         return 0;
 
-    //bool isWOTLK = sWorld->getIntConfig(CONFIG_EXPANSION) == EXPANSION_WRATH_OF_THE_LICH_KING; //not used, line marked for removal.
+    //bool isWOTLK = sWorld->getIntConfig(CONFIG_EXPANSION) >= EXPANSION_WRATH_OF_THE_LICH_KING; //not used, line marked for removal.
 
     // Determine divisor based on WOTLK condition
     int divisor = CalculateAvailableCharsPerAccount();
@@ -473,7 +473,7 @@ uint32 RandomPlayerbotFactory::CalculateTotalAccountCount()
 
 uint32 RandomPlayerbotFactory::CalculateAvailableCharsPerAccount()
 {
-    bool noDK = sPlayerbotAIConfig->disableDeathKnightLogin || sWorld->getIntConfig(CONFIG_EXPANSION) != EXPANSION_WRATH_OF_THE_LICH_KING;
+    bool noDK = sPlayerbotAIConfig->disableDeathKnightLogin || sWorld->getIntConfig(CONFIG_EXPANSION) >= EXPANSION_WRATH_OF_THE_LICH_KING;
 
     uint32 availableChars = noDK ? 9 : 10;
 
@@ -727,7 +727,7 @@ void RandomPlayerbotFactory::CreateRandomBots()
         LOG_DEBUG("playerbots", "Creating random bot characters for account: [{}/{}]", accountNumber + 1, totalAccountCount);
         RandomPlayerbotFactory factory(accountId);
 
-        WorldSession* session = new WorldSession(accountId, "", nullptr, SEC_PLAYER, EXPANSION_WRATH_OF_THE_LICH_KING,
+        WorldSession* session = new WorldSession(accountId, "", nullptr, SEC_PLAYER, EXPANSION_CATACLYSM,
                                                 time_t(0), LOCALE_enUS, 0, false, false, 0, true);
         sessionBots.push_back(session);
 
@@ -738,7 +738,7 @@ void RandomPlayerbotFactory::CreateRandomBots()
                 continue;
 
             if (bool const isClassDeathKnight = cls == CLASS_DEATH_KNIGHT;
-                isClassDeathKnight && sWorld->getIntConfig(CONFIG_EXPANSION) != EXPANSION_WRATH_OF_THE_LICH_KING)
+                isClassDeathKnight && sWorld->getIntConfig(CONFIG_EXPANSION) < EXPANSION_WRATH_OF_THE_LICH_KING)
             {
                 continue;
             }
