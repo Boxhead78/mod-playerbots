@@ -180,7 +180,7 @@ bool PlayerHasFlag::IsCapturingFlag(Player* bot)
                 if (controlledBases == 0)
                     return false; // bot has flag but no place to take it
 
-                // Otherwise, return false – stay defensive / move to base
+                // Otherwise, return false and stay defensive / move to base
                 return bot->GetGUID() == bg->GetFlagPickerGUID();
             }
         }
@@ -215,6 +215,7 @@ bool TeamHasFlag::IsActive()
 
     return ownTeamHasFlag && !enemyTeamHasFlag;
 }
+
 
 bool EnemyTeamHasFlag::IsActive()
 {

@@ -11,9 +11,18 @@
 #include "PlayerbotAIConfig.h"
 #include "PlayerbotFactory.h"
 #include "Playerbots.h"
+#include "AiObjectContext.h"
+#include "Log.h" 
 
 bool ChangeTalentsAction::Execute(Event event)
 {
+    auto* flag = botAI->GetAiObjectContext()->GetValue<bool>("custom_glyphs"); // Added for custom Glyphs
+
+    if (flag->Get()) // Added for custom Glyphs
+    {
+        flag->Set(false);
+        LOG_INFO("playerbots", "Custom Glyph Flag set to OFF");
+    }
     std::string param = event.getParam();
 
     std::ostringstream out;
@@ -135,6 +144,10 @@ std::string ChangeTalentsAction::SpecPick(std::string param)
         if (sPlayerbotAIConfig->premadeSpecName[cls][specNo] == param)
         {
             PlayerbotFactory::InitTalentsBySpecNo(bot, specNo, true);
+
+            PlayerbotFactory factory(bot, bot->GetLevel());
+            factory.InitGlyphs(false);
+
             std::ostringstream out;
             out << "Picking " << sPlayerbotAIConfig->premadeSpecName[cls][specNo];
             return out.str();
