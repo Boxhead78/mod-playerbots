@@ -8,9 +8,6 @@
 
 #include <list>
 #include <set>
-#include <map>
-#include <mutex>
-#include <shared_mutex>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -96,27 +93,17 @@ public:
 
     virtual ~NamedObjectContext() { Clear(); }
 
-    T* create(std::string const& name, PlayerbotAI* botAI)
+    T* create(std::string const name, PlayerbotAI* botAI)
     {
-        std::unique_lock<std::shared_mutex> guard(createMutex);
-        auto it = created.find(name);
-        if (it == created.end())
-        {
-            T* obj = NamedObjectFactory<T>::create(name, botAI);
-            if (!obj)
-                return nullptr;
+        if (created.find(name) == created.end())
+            return created[name] = NamedObjectFactory<T>::create(name, botAI);
 
-            created[name] = obj;
-            return obj;
-        }
-
-        return it->second;
+        return created[name];
     }
 
     void Clear()
     {
-        std::unique_lock<std::shared_mutex> guard(createMutex);
-        for (typename std::map<std::string, T*>::iterator i = created.begin(); i != created.end(); i++)
+        for (typename std::unordered_map<std::string, T*>::iterator i = created.begin(); i != created.end(); i++)
         {
             if (i->second)
                 delete i->second;
@@ -130,17 +117,15 @@ public:
 
     std::set<std::string> GetCreated()
     {
-        std::shared_lock<std::shared_mutex> guard(createMutex);
         std::set<std::string> keys;
-        for (typename std::map<std::string, T*>::iterator it = created.begin(); it != created.end(); it++)
+        for (typename std::unordered_map<std::string, T*>::iterator it = created.begin(); it != created.end(); it++)
             keys.insert(it->first);
 
         return keys;
     }
 
 protected:
-    std::map<std::string, T*> created;
-    std::shared_mutex createMutex;
+    std::unordered_map<std::string, T*> created;
     bool shared;
     bool supportsSiblings;
 };
@@ -196,7 +181,6 @@ public:
 
     T* create(std::string name, PlayerbotAI* botAI)
     {
-        std::unique_lock<std::shared_mutex> guard(createMutex);
         size_t found = name.find("::");
         std::string qualifier;
         if (found != std::string::npos)
@@ -265,7 +249,6 @@ public:
 
     std::set<std::string> GetCreated()
     {
-        std::shared_lock<std::shared_mutex> guard(createMutex);
         std::set<std::string> result;
         for (typename std::unordered_map<std::string, T*>::iterator i = created.begin(); i != created.end(); i++)
         {
@@ -274,8 +257,6 @@ public:
 
         return result;
     }
-protected:
-    std::shared_mutex createMutex;
 };
 
 template <class T>
@@ -294,7 +275,6 @@ public:
 
     T* create(std::string name, PlayerbotAI* botAI)
     {
-        std::unique_lock<std::shared_mutex> guard(createMutex);
         size_t found = name.find("::");
         std::string qualifier;
         if (found != std::string::npos)
@@ -333,8 +313,6 @@ public:
             return object;
         return nullptr;
     }
-protected:
-    std::shared_mutex createMutex;
 };
 
 #endif
