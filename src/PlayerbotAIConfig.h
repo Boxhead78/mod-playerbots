@@ -23,7 +23,8 @@ enum class BotCheatMask : uint32
     mana = 8,
     power = 16,
     raid = 32,
-    maxMask = 64
+    food = 64,
+    maxMask = 128
 };
 
 enum class HealingManaEfficiency : uint8
@@ -335,12 +336,13 @@ public:
     bool autoPickTalents;
     bool autoUpgradeEquip;
     int32 hunterWolfPet;
+    int32 defaultPetStance;
+    int32 petChatCommandDebug;
     bool autoLearnTrainerSpells;
     bool autoDoQuests;
     bool enableNewRpgStrategy;
     std::unordered_map<NewRpgStatus, uint32> RpgStatusProbWeight;
     bool syncLevelWithPlayers;
-    bool freeFood;
     bool autoLearnQuestSpells;
     bool autoTeleportForLevel;
     bool randomBotGroupNearby;
@@ -414,6 +416,12 @@ public:
 
     static std::vector<std::vector<uint32>> ParseTempTalentsOrder(uint32 cls, std::string temp_talents_order);
     static std::vector<std::vector<uint32>> ParseTempPetTalentsOrder(uint32 spec, std::string temp_talents_order);
+
+    bool restrictHealerDPS = false;
+    std::vector<uint32> restrictedHealerDPSMaps;
+    bool IsRestrictedHealerDPSMap(uint32 mapId) const;
+
+    std::vector<uint32> excludedHunterPetFamilies;
 };
 
 #define sPlayerbotAIConfig PlayerbotAIConfig::instance()

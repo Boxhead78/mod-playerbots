@@ -38,6 +38,7 @@
 #include "InviteToGroupAction.h"
 #include "LeaveGroupAction.h"
 #include "LootAction.h"
+#include "LootRollAction.h"
 #include "MoveToRpgTargetAction.h"
 #include "MoveToTravelTargetAction.h"
 #include "MovementActions.h"
@@ -63,6 +64,7 @@
 #include "WorldBuffAction.h"
 #include "XpGainAction.h"
 #include "NewRpgAction.h"
+#include "CancelChannelAction.h"
 
 class PlayerbotAI;
 
@@ -189,6 +191,8 @@ public:
         creators["buy tabard"] = &ActionContext::buy_tabard;
         creators["guild manage nearby"] = &ActionContext::guild_manage_nearby;
         creators["clean quest log"] = &ActionContext::clean_quest_log;
+        creators["roll"] = &ActionContext::roll_action;
+        creators["cancel channel"] = &ActionContext::cancel_channel;
         creators["rocket barrage"] = &ActionContext::rocket_barrage;
         creators["rocket jump"] = &ActionContext::rocket_jump;
         creators["darkflight"] = &ActionContext::darkflight;
@@ -197,7 +201,6 @@ public:
         creators["revive to master"] = &ActionContext::revive_to_master;
         creators["check group"] = &ActionContext::check_group;
         creators["generate equipment"] = &ActionContext::generate_equipment;
-
 
         // BG Tactics
         creators["bg tactics"] = &ActionContext::bg_tactics;
@@ -251,7 +254,8 @@ public:
         creators["rpg mount anim"] = &ActionContext::rpg_mount_anim;
 
         creators["toggle pet spell"] = &ActionContext::toggle_pet_spell;
-        creators["pet attack"] = &ActionContext::pet_attack; 
+        creators["pet attack"] = &ActionContext::pet_attack;
+        creators["set pet stance"] = &ActionContext::set_pet_stance;
 
         creators["new rpg status update"] = &ActionContext::new_rpg_status_update;
         creators["new rpg go grind"] = &ActionContext::new_rpg_go_grind;
@@ -307,6 +311,7 @@ private:
     static Action* arcane_torrent(PlayerbotAI* botAI) { return new CastArcaneTorrentAction(botAI); }
     static Action* mana_tap(PlayerbotAI* botAI) { return new CastManaTapAction(botAI); }
     static Action* end_pull(PlayerbotAI* botAI) { return new ChangeCombatStrategyAction(botAI, "-pull"); }
+    static Action* cancel_channel(PlayerbotAI* botAI) { return new CancelChannelAction(botAI); }
 
     static Action* emote(PlayerbotAI* botAI) { return new EmoteAction(botAI); }
     static Action* talk(PlayerbotAI* botAI) { return new TalkAction(botAI); }
@@ -383,6 +388,7 @@ private:
     static Action* buy_tabard(PlayerbotAI* botAI) { return new BuyTabardAction(botAI); }
     static Action* guild_manage_nearby(PlayerbotAI* botAI) { return new GuildManageNearbyAction(botAI); }
     static Action* clean_quest_log(PlayerbotAI* botAI) { return new CleanQuestLogAction(botAI); }
+    static Action* roll_action(PlayerbotAI* botAI) { return new RollAction(botAI); }
 
     static Action* rocket_barrage(PlayerbotAI* botAI) { return new CastRocketBarrageAction(botAI); }
     static Action* rocket_jump(PlayerbotAI* botAI) { return new CastRocketJumpAction(botAI); }
@@ -446,6 +452,7 @@ private:
 
     static Action* toggle_pet_spell(PlayerbotAI* ai) { return new TogglePetSpellAutoCastAction(ai); }
     static Action* pet_attack(PlayerbotAI* ai) { return new PetAttackAction(ai); }
+    static Action* set_pet_stance(PlayerbotAI* ai) { return new SetPetStanceAction(ai); }
 
     static Action* new_rpg_status_update(PlayerbotAI* ai) { return new NewRpgStatusUpdateAction(ai); }
     static Action* new_rpg_go_grind(PlayerbotAI* ai) { return new NewRpgGoGrindAction(ai); }

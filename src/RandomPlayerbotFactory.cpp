@@ -830,7 +830,7 @@ void RandomPlayerbotFactory::CreateRandomBots()
         LOG_DEBUG("playerbots", "Creating random bot characters for account: [{}/{}]", accountNumber + 1, totalAccountCount);
         RandomPlayerbotFactory factory(accountId);
 
-        WorldSession* session = new WorldSession(accountId, "", nullptr, SEC_PLAYER, EXPANSION_CATACLYSM,
+        WorldSession* session = new WorldSession(accountId, "", 0x0, nullptr, SEC_PLAYER, EXPANSION_CATACLYSM,
                                                 time_t(0), LOCALE_enUS, 0, false, false, 0, true);
         sessionBots.push_back(session);
 
