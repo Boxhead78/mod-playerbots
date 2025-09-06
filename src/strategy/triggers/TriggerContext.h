@@ -42,6 +42,7 @@ public:
         creators["very often"] = &TriggerContext::very_often;
         creators["very frequent"] = &TriggerContext::very_frequent;
         creators["random lfg"] = &TriggerContext::RandomLFG;
+        creators["random bg"] = &TriggerContext::RandomBG;
         creators["random lfg leave"] = &TriggerContext::RandomLFGLeave;
         creators["random chat"] = &TriggerContext::RandomChat;
         creators["generate equipment trigger"] = &TriggerContext::GenerateEquipmentTrigger;
@@ -329,10 +330,11 @@ private:
     static Trigger* often(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "often", 5); }
     static Trigger* very_often(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "very often", 3); }
     static Trigger* very_frequent(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "very frequent", 1); }
-    static Trigger* RandomLFG(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "random lfg", 75); }
+    static Trigger* RandomLFG(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "random lfg", 50); }
+    static Trigger* RandomBG(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "bg lfg", 75); }
     static Trigger* RandomLFGLeave(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "random lfg leave", 1200); }
     static Trigger* RandomChat(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "random chat", 3000); }
-    static Trigger* GenerateEquipmentTrigger(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "generate equipment trigger", 6000); }
+    static Trigger* GenerateEquipmentTrigger(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "generate equipment trigger", 150); }
     static Trigger* EnemyOutOfMelee(PlayerbotAI* botAI) { return new EnemyOutOfMeleeTrigger(botAI); }
     static Trigger* EnemyOutOfSpell(PlayerbotAI* botAI) { return new EnemyOutOfSpellRangeTrigger(botAI); }
     static Trigger* enemy_too_close_for_spell(PlayerbotAI* botAI) { return new EnemyTooCloseForSpellTrigger(botAI); }
