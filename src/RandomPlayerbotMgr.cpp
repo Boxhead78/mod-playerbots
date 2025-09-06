@@ -3523,7 +3523,12 @@ uint32 RandomPlayerbotMgr::CalculateToDBotCount()
 
     // Weekend bonus multiplier
     if (weekday == 0 || weekday == 6) // Sunday or Saturday
-        timeFactor *= 1.4f + frand(0.0f, 0.2f);
+    {
+        timeFactor *= 1.8f + frand(0.0f, 0.4f);
+        // Extra boost for evening & night on weekends
+        if (hour >= 18 || hour < 2)
+            timeFactor *= 1.3f + frand(0.0f, 0.2f);
+    }
 
     // Add daily natural variance (±5%)
     timeFactor *= 0.95f + frand(0.0f, 0.1f);
