@@ -2092,10 +2092,10 @@ AiPlayerbot.EnableICCBuffs = 0
 ##############################################
 
 AiPlayerbot.HealMultiplier = 1.1
-AiPlayerbot.DamageMultiplier = 0.9
+AiPlayerbot.DamageMultiplier = 1.1
 AiPlayerbot.HPMultiplier = 1.1
 AiPlayerbot.ManaMultiplier = 1.1
-AiPlayerbot.DungeonRaidIncomingDamageMultiplier = 0.60
+AiPlayerbot.DungeonRaidIncomingDamageMultiplier = 0.6
 AiPlayerbot.HPRegenMultiplier = 1.5
 AiPlayerbot.ManaRegenMultiplier = 3.0
 AiPlayerbot.ThreatTankMultiplier = 1.5
