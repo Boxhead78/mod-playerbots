@@ -511,7 +511,7 @@ void AiFactory::AddDefaultCombatStrategies(Player* player, PlayerbotAI* const fa
             engine->addStrategy("arena", false);
         }
 
-        engine->addStrategiesNoInit("boost", "racials", "chat", "default", "aoe", "potions", "cast time", "dps assist",
+        engine->addStrategiesNoInit("boost", "racials", "chat", "default", "aoe", "potions", "cast time", "dps", "dps assist",
                               nullptr);
         engine->removeStrategy("custom::say", false);
         engine->removeStrategy("flee", false);
