@@ -3634,7 +3634,7 @@ bool BGTactics::atFlag(std::vector<BattleBotPath*> const& vPaths, std::vector<ui
     }
 
     // If we found a valid flag/base to interact with
-    if (bgType != BATTLEGROUND_WS && bgType != BATTLEGROUND_AV && bgType != BATTLEGROUND_AB)
+    if (bgType != BATTLEGROUND_WS && bgType != BATTLEGROUND_AV)
     {
         if (targetFlag)
         {
