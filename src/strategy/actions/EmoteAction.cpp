@@ -149,6 +149,7 @@ bool EmoteActionBase::ReceiveEmote(Player* source, uint32 emote, bool verbal)
     uint32 textEmote = 0;
     std::string emoteText;
     std::string emoteYell;
+    verbal = false;
 
     switch (emote)
     {

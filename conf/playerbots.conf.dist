@@ -2088,7 +2088,7 @@ AiPlayerbot.SummonAtInnkeepersEnabled = 1
 AiPlayerbot.EnableICCBuffs = 0
 
 ##############################################
-# Custom                                     #
+# Twilborne Custom                           #
 ##############################################
 
 AiPlayerbot.HealMultiplier = 1.1
@@ -2098,7 +2098,7 @@ AiPlayerbot.ManaMultiplier = 1.1
 AiPlayerbot.DungeonRaidIncomingDamageMultiplier = 0.6
 AiPlayerbot.HPRegenMultiplier = 1.5
 AiPlayerbot.ManaRegenMultiplier = 3.0
-AiPlayerbot.ThreatTankMultiplier = 1.5
+AiPlayerbot.ThreatTankMultiplier = 1.1
 
 # Controlls if the playerbot amount is affected by the time of day
 AiPlayerbot.AmountToD = 1
