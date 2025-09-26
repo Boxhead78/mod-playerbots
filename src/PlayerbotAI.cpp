@@ -1052,7 +1052,7 @@ void PlayerbotAI::HandleBotOutgoingPacket(WorldPacket const& packet)
                     default:
                         return;
                 }
-                
+
                 if (chanName == "World")
                     return;
 
@@ -2935,9 +2935,9 @@ bool PlayerbotAI::HasAura(uint32 spellId, Unit const* unit)
     return unit->HasAura(spellId);
     // for (uint8 effect = EFFECT_0; effect <= EFFECT_2; effect++)
     // {
-    // 	AuraEffect const* aurEff = unit->GetAuraEffect(spellId, effect);
-    // 	if (IsRealAura(bot, aurEff, unit))
-    // 		return true;
+    //     AuraEffect const* aurEff = unit->GetAuraEffect(spellId, effect);
+    //     if (IsRealAura(bot, aurEff, unit))
+    //         return true;
     // }
 
     // return false;

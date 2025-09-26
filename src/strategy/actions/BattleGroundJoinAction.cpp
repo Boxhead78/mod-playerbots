@@ -547,7 +547,7 @@ bool BGJoinAction::JoinQueue(uint32 type)
     }
 
     botAI->GetAiObjectContext()->GetValue<uint32>("bg type")->Set(0);
-    
+
     if (!isArena)
     {
         WorldPacket* packet = new WorldPacket(CMSG_BATTLEMASTER_JOIN, 20);
