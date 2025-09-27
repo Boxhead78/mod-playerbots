@@ -160,7 +160,7 @@ AiPlayerbot.RandomBotGuildNearby = 1
 AiPlayerbot.RandomBotGuildCount = 50
 
 # Delete all randombot guilds if set to 1
-AiPlayerbot.DeleteRandomBotGuilds = 0
+AiPlayerbot.DeleteRandomBotGuilds = 1
 
 # Randombots will invite players to groups/raids/guilds
 AiPlayerbot.RandomBotInvitePlayer = 1
