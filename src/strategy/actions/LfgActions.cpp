@@ -157,39 +157,48 @@ bool LfgJoinAction::JoinLFG()
     LFGDungeonEntry const* dungeon = sLFGDungeonStore.LookupEntry(*list.begin());
 
     // check role for console msg
-    std::string _roles = "multiple roles";
     uint32 roleMask = GetRoles();
-    if (roleMask & PLAYER_ROLE_TANK)
-        _roles = "TANK";
+    std::string rolesStr = "multiple roles";
+    if (roleMask & PLAYER_ROLE_TANK)   rolesStr = "TANK";
+    if (roleMask & PLAYER_ROLE_HEALER) rolesStr = "HEAL";
+    if (roleMask & PLAYER_ROLE_DAMAGE) rolesStr = "DPS";
 
-    if (roleMask & PLAYER_ROLE_HEALER)
-        _roles = "HEAL";
+    LOG_INFO("playerbots", "Bot {} {}:{} <{}>: queues LFG as {} ({} entries)",
+            bot->GetGUID().ToString().c_str(),
+            bot->GetTeamId() == TEAM_ALLIANCE ? "A" : "H",
+            bot->GetLevel(),
+            bot->GetName().c_str(),
+            rolesStr,
+            (uint32)list.size());
 
-    if (roleMask & PLAYER_ROLE_DAMAGE)
-        _roles = "DPS";
+    std::string comment = "Bot " + rolesStr + " GS:" + std::to_string((int)bot->GetAverageItemLevelForDF());
 
-    LOG_INFO("playerbots", "Bot {} {}:{} <{}>: queues LFG, Dungeon as {} ({})", bot->GetGUID().ToString().c_str(),
-             bot->GetTeamId() == TEAM_ALLIANCE ? "A" : "H", bot->GetLevel(), bot->GetName().c_str(), _roles,
-             many ? "several dungeons" : dungeon->Name[0]);
-
-    std::string _gs = std::to_string(static_cast<int>(bot->GetAverageItemLevelForDF()));
-    std::string comment = "Bot " + _roles + " GS:" + _gs + " for LFG";
     WorldPacket* data = new WorldPacket(CMSG_LFG_JOIN);
-    *data << (uint32)roleMask;         // Roles
-    *data << (bool)false;              // NoPartialClear
-    *data << (bool)false;              // Achievements
-    *data << (uint8)(list.size());     // Slots count
-    for (uint32 dungeon : list)
-        *data << (uint32)dungeon;     // Slot entries
-    
-    *data << (uint8)3                 // Needs array size (always 3)
-        << (uint8)0
-        << (uint8)0
-        << (uint8)0;
-    
-    *data << comment;                 // Comment
-    *data << _gs;                     // Gearscore or "gs"
+
+    *data << uint32(roleMask);         // Roles
+    *data << uint8(0);                 // NoPartialClear = false   (MISSING BEFORE)
+    *data << uint8(0);                 // Achievements = false     (MISSING BEFORE)
+
+    *data << uint8(list.size());       // Slots count
+    for (uint32 id : list)
+    {
+        if (LFGDungeonEntry const* d = sLFGDungeonStore.LookupEntry(id))
+        {
+            uint32 typed = (uint32(d->TypeID) << 24) | (d->ID & 0x00FFFFFF);
+            *data << uint32(typed);
+        }
+        else
+            *data << uint32(id);
+    }
+
+    // Needs section (client sends count=3, then 3 bytes).
+    *data << uint8(3);                 // Needs count (=3)
+    *data << uint8(0) << uint8(0) << uint8(0);  // Needs[3]
+
+    *data << comment;                  // Comment
+
     bot->GetSession()->QueuePacket(data);
+    bot->UpdateLFGChannel();
 
     return true;
 }
