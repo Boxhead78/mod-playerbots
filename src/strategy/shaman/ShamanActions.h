@@ -382,7 +382,6 @@ class CastCallOfTheElementsAction : public CastSpellAction
 {
 public:
     CastCallOfTheElementsAction(PlayerbotAI* ai) : CastSpellAction(ai, "call of the elements") {}
-	bool Execute(Event event) override; // Added for debug message
 };
 
 class CastTotemicRecallAction : public CastSpellAction
@@ -532,18 +531,12 @@ public:
 class SetTotemAction : public Action
 {
 public:
-    // Template constructor: infers N (size of the id array) at compile time
-    template <size_t N>
-    SetTotemAction(PlayerbotAI* botAI, std::string const& totemName, const uint32 (&ids)[N], int actionButtonId)
-        : Action(botAI, "set " + totemName)
-        , totemSpellIds(ids)
-        , totemSpellIdsCount(N)
-        , actionButtonId(actionButtonId)
-    {}
-
+    SetTotemAction(PlayerbotAI* botAI, std::string const totemName, const uint32 totemSpellIds[], int actionButtonId)
+        : Action(botAI, "set " + totemName), totemSpellIds(totemSpellIds), actionButtonId(actionButtonId)
+    {
+    }
     bool Execute(Event event) override;
     uint32 const* totemSpellIds;
-    size_t totemSpellIdsCount;
     int actionButtonId;
 };
 
