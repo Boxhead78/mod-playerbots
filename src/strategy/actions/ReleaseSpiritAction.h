@@ -40,6 +40,7 @@ private:
 
     inline static std::unordered_map<uint32_t, time_t> m_botReleaseTimes;
     time_t m_bgGossipTime = 0;
+    inline static std::mutex m_botReleaseTimesMutex;
 };
 
 class RepopAction : public SpiritHealerAction

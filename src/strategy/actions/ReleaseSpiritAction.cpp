@@ -191,12 +191,14 @@ bool AutoReleaseSpiritAction::ShouldDelayBattlegroundRelease() const
 {
     // The below delays release to spirit with 6 seconds.
     // This prevents currently casted (ranged) spells to be re-directed to the died bot's ghost.
-    const int32_t botId = bot->GetGUID().GetRawValue();
+    const uint32_t key = static_cast<uint32_t>(bot->GetGUID().GetCounter());
+    std::scoped_lock<std::mutex> g(m_botReleaseTimesMutex); // threadsafe
 
     // If the bot already is a spirit, erase release time and return true
     if (bot->HasPlayerFlag(PLAYER_FLAGS_GHOST))
     {
-        m_botReleaseTimes.erase(botId);
+        if (auto it = m_botReleaseTimes.find(key); it != m_botReleaseTimes.end())
+            m_botReleaseTimes.erase(it);
         return true;
     }
 
@@ -204,15 +206,19 @@ bool AutoReleaseSpiritAction::ShouldDelayBattlegroundRelease() const
     const time_t now = time(nullptr);
     constexpr time_t RELEASE_DELAY = 6;
 
-    auto& lastReleaseTime = m_botReleaseTimes[botId];
-    if (lastReleaseTime == 0)
-        lastReleaseTime = now;
-
-    if (now - lastReleaseTime < RELEASE_DELAY)
+    if (auto it = m_botReleaseTimes.find(key); it == m_botReleaseTimes.end())
+    {
+        m_botReleaseTimes.emplace(key, now);
         return false;
+    }
+    else
+    {
+        if (now - it->second < RELEASE_DELAY)
+            return false;
 
-    m_botReleaseTimes.erase(botId);
-    return true;
+        m_botReleaseTimes.erase(it);
+        return true;
+    }
 }
 
 bool RepopAction::Execute(Event event)
