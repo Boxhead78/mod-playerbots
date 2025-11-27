@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU GPL v2 license, you may redistribute it
- * and/or modify it under version 2 of the License, or (at your option), any later version.
+ * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
+ * and/or modify it under version 3 of the License, or (at your option), any later version.
  */
 
 #include "GenericSpellActions.h"
@@ -190,8 +190,8 @@ CastEnchantItemAction::CastEnchantItemAction(PlayerbotAI* botAI, std::string con
 
 bool CastEnchantItemAction::isPossible()
 {
-    // if (!CastSpellAction::isPossible()) {
-
+    // if (!CastSpellAction::isPossible())
+    // {
     //     botAI->TellMasterNoFacing("Impossible: " + spell);
     //     return false;
     // }
@@ -364,7 +364,8 @@ bool UseTrinketAction::UseTrinket(Item* item)
             for (int i = 0; i < MAX_SPELL_EFFECTS; i++)
             {
                 const SpellEffectInfo& effectInfo = spellInfo->Effects[i];
-                if (effectInfo.Effect == SPELL_EFFECT_APPLY_AURA) {
+                if (effectInfo.Effect == SPELL_EFFECT_APPLY_AURA)
+                {
                     applyAura = true;
                     break;
                 }

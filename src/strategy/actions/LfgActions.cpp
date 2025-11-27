@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU GPL v2 license, you may redistribute it
- * and/or modify it under version 2 of the License, or (at your option), any later version.
+ * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
+ * and/or modify it under version 3 of the License, or (at your option), any later version.
  */
 
 #include "LfgActions.h"
@@ -16,7 +16,6 @@
 #include "WorldPacket.h"
 
 using namespace lfg;
-
 
 bool LfgJoinAction::Execute(Event event) { return JoinLFG(); }
 
@@ -116,7 +115,7 @@ bool LfgJoinAction::JoinLFG()
                             dungeon->TypeID != LFG_TYPE_HEROIC))
                 continue;
 
-            const auto& botLevel = bot->GetLevel();
+            auto auto& botLevel = bot->GetLevel();
 
             /*LFG_TYPE_RANDOM on classic is 15-58 so bot over level 25 will never queue*/
             if (dungeon->MinLevel && (botLevel < dungeon->MinLevel || botLevel > dungeon->MaxLevel) ||
@@ -211,7 +210,6 @@ bool LfgRoleCheckAction::Execute(Event event)
         uint32 newRoles = GetRoles();
         // if (currentRoles == newRoles)
         //     return false;
-
 
         WorldPacket* packet = new WorldPacket(CMSG_LFG_SET_ROLES);
         *packet << (uint8)newRoles;
@@ -325,7 +323,6 @@ bool LfgAcceptAction::Execute(Event event)
 
     return false;
 }
-
 
 bool LfgLeaveAction::Execute(Event event)
 {

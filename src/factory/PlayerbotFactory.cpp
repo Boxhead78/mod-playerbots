@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU GPL v2 license, you may redistribute it
- * and/or modify it under version 2 of the License, or (at your option), any later version.
+ * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
+ * and/or modify it under version 3 of the License, or (at your option), any later version.
  */
 
 #include "PlayerbotFactory.h"
@@ -245,7 +245,7 @@ void PlayerbotFactory::Init()
             continue;
         }
 
-        if (proto->Flags & ITEM_FLAG_UNIQUE_EQUIPPABLE)
+        if (proto->HasFlag(ITEM_FLAG_UNIQUE_EQUIPPABLE))
         {
             continue;
         }
@@ -1456,7 +1456,7 @@ bool PlayerbotFactory::CanEquipArmor(ItemTemplate const* proto)
     // for (uint8 j = 0; j < MAX_ITEM_PROTO_STATS; ++j)
     // {
     //     // for ItemStatValue != 0
-    //     if(!proto->ItemStat[j].ItemStatValue)
+    //     if (!proto->ItemStat[j].ItemStatValue)
     //         continue;
 
     //     AddItemStats(proto->ItemStat[j].ItemStatType, sp, ap, tank);
@@ -1665,7 +1665,8 @@ void Shuffle(std::vector<uint32>& items)
 //         bool noItem = false;
 //         uint32 quality = urand(ITEM_QUALITY_UNCOMMON, ITEM_QUALITY_EPIC);
 //         uint32 attempts = 10;
-//         if (urand(0, 100) < 100 * sPlayerbotAIConfig->randomGearLoweringChance && quality > ITEM_QUALITY_NORMAL) {
+//         if (urand(0, 100) < 100 * sPlayerbotAIConfig->randomGearLoweringChance && quality > ITEM_QUALITY_NORMAL)
+//         {
 //             quality--;
 //         }
 //         // current item;
@@ -1770,7 +1771,8 @@ void PlayerbotFactory::InitEquipment(bool incremental, bool second_chance)
     if (incremental && !sPlayerbotAIConfig->incrementalGearInit)
         return;
 
-    if (level < 5) {
+    if (level < 5)
+    {
         // original items
         if (CharStartOutfitEntry const* oEntry = GetCharStartOutfitEntry(bot->getRace(), bot->getClass(), bot->getGender()))
         {
@@ -1799,7 +1801,8 @@ void PlayerbotFactory::InitEquipment(bool incremental, bool second_chance)
                     continue;
                 }
 
-                if (bot->HasItemCount(itemId, count)) {
+                if (bot->HasItemCount(itemId, count))
+                {
                     continue;
                 }
 
@@ -2854,7 +2857,8 @@ void PlayerbotFactory::InitTalents(uint32 specNo)
 
 void PlayerbotFactory::InitTalentsByTemplate(uint32 specTab)
 {
-    // if (sPlayerbotAIConfig->parsedSpecLinkOrder[bot->getClass()][specNo][80].size() == 0) {
+    // if (sPlayerbotAIConfig->parsedSpecLinkOrder[bot->getClass()][specNo][80].size() == 0)
+    // {
     //     return;
     // }
     uint32 cls = bot->getClass();
@@ -4078,7 +4082,7 @@ void PlayerbotFactory::InitGuild()
         return;
     }
 
-    if (guild->GetMemberSize() < urand(10, 15))
+    if (guild->GetMemberSize() < urand(10, sPlayerbotAIConfig->randomBotGuildSizeMax))
         guild->AddMember(bot->GetGUID(), urand(GR_OFFICER, GR_INITIATE));
 
     // add guild tabard
@@ -4373,7 +4377,7 @@ void PlayerbotFactory::ApplyEnchantTemplate(uint8 spec)
     // const SpellItemEnchantmentEntry* a = sSpellItemEnchantmentStore.LookupEntry(1);
 }
 
-void PlayerbotFactory::ApplyEnchantAndGemsNew(bool destoryOld)
+void PlayerbotFactory::ApplyEnchantAndGemsNew(bool destroyOld)
 {
     //int32 bestGemEnchantId[4] = {-1, -1, -1, -1};  // 1, 2, 4, 8 color //not used, line marked for removal.
     //float bestGemScore[4] = {0, 0, 0, 0}; //not used, line marked for removal.

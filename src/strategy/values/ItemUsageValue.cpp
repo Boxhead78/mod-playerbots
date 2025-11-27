@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU GPL v2 license, you may redistribute it
- * and/or modify it under version 2 of the License, or (at your option), any later version.
+ * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
+ * and/or modify it under version 3 of the License, or (at your option), any later version.
  */
 
 #include "ItemUsageValue.h"
@@ -22,10 +22,13 @@ ItemUsage ItemUsageValue::Calculate()
     uint32 itemId = 0;
     uint32 randomPropertyId = 0;
     size_t pos = qualifier.find(",");
-    if (pos != std::string::npos) {
+    if (pos != std::string::npos)
+    {
         itemId = atoi(qualifier.substr(0, pos).c_str());
         randomPropertyId = atoi(qualifier.substr(pos + 1).c_str());
-    } else {
+    }
+    else
+    {
         itemId = atoi(qualifier.c_str());
     }
 
@@ -59,7 +62,7 @@ ItemUsage ItemUsageValue::Calculate()
                 if (bot->HasSpell(proto->Spells[2].SpellId))
                     needItem = false;
                 else
-                    needItem = bot->CanUseItem(proto) == EQUIP_ERR_OK;
+                    needItem = bot->BotCanUseItem(proto) == EQUIP_ERR_OK;
             }
         }
 
@@ -236,7 +239,7 @@ ItemUsage ItemUsageValue::Calculate()
 
 ItemUsage ItemUsageValue::QueryItemUsageForEquip(ItemTemplate const* itemProto, int32 randomPropertyId)
 {
-    if (bot->CanUseItem(itemProto) != EQUIP_ERR_OK)
+    if (bot->BotCanUseItem(itemProto) != EQUIP_ERR_OK)
         return ITEM_USAGE_NONE;
 
     if (itemProto->InventoryType == INVTYPE_NON_EQUIP)
@@ -261,7 +264,7 @@ ItemUsage ItemUsageValue::QueryItemUsageForEquip(ItemTemplate const* itemProto, 
     {
         needToCheckUnique = true;
     }
-    else if (itemProto->Flags & ITEM_FLAG_UNIQUE_EQUIPPABLE)
+    else if (itemProto->HasFlag(ITEM_FLAG_UNIQUE_EQUIPPABLE))
     {
         needToCheckUnique = true;
     }
@@ -372,7 +375,6 @@ ItemUsage ItemUsageValue::QueryItemUsageForEquip(ItemTemplate const* itemProto, 
             possibleSlots = 2;
         }
     }
-
 
     for (uint8 i = 0; i < possibleSlots; i++)
     {

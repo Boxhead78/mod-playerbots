@@ -25,6 +25,7 @@
 #include "Metric.h"
 #include "PlayerScript.h"
 #include "PlayerbotAIConfig.h"
+#include "PlayerbotWorldThreadProcessor.h"
 #include "RandomPlayerbotMgr.h"
 #include "ScriptMgr.h"
 #include "cs_playerbots.h"
@@ -81,13 +82,14 @@ public:
     PlayerbotsPlayerScript() : PlayerScript("PlayerbotsPlayerScript", {
         PLAYERHOOK_ON_LOGIN,
         PLAYERHOOK_ON_AFTER_UPDATE,
-        PLAYERHOOK_ON_CHAT,
-        PLAYERHOOK_ON_CHAT_WITH_CHANNEL,
-        PLAYERHOOK_ON_CHAT_WITH_GROUP,
         PLAYERHOOK_ON_BEFORE_CRITERIA_PROGRESS,
         PLAYERHOOK_ON_BEFORE_ACHI_COMPLETE,
         PLAYERHOOK_CAN_PLAYER_USE_PRIVATE_CHAT,
-        PLAYERHOOK_ON_GIVE_EXP
+        PLAYERHOOK_CAN_PLAYER_USE_GROUP_CHAT,
+        PLAYERHOOK_CAN_PLAYER_USE_GUILD_CHAT,
+        PLAYERHOOK_CAN_PLAYER_USE_CHANNEL_CHAT,
+        PLAYERHOOK_ON_GIVE_EXP,
+        PLAYERHOOK_ON_BEFORE_TELEPORT
     }) {}
 
     void OnPlayerLogin(Player* player) override
@@ -105,9 +107,9 @@ public:
             {
                 uint32 loc = player->GetSession()->GetSessionDbLocaleIndex();
                 if (loc == 3)
-                    ChatHandler(player->GetSession()).SendSysMessage("|cff00ff00Dieser Server nutzt |cff00ccffmod-playerbots|r ""|cffcccccchttps://github.com/liyunfan1223/mod-playerbots|r");
+                    ChatHandler(player->GetSession()).SendSysMessage("|cff00ff00Dieser Server nutzt |cff00ccffmod-playerbots|r ""|cffcccccchttps://github.com/mod-playerbots/mod-playerbots|r");
                 else
-                    ChatHandler(player->GetSession()).SendSysMessage("|cff00ff00This server runs with |cff00ccffmod-playerbots|r ""|cffcccccchttps://github.com/liyunfan1223/mod-playerbots|r");
+                    ChatHandler(player->GetSession()).SendSysMessage("|cff00ff00This server runs with |cff00ccffmod-playerbots|r ""|cffcccccchttps://github.com/mod-playerbots/mod-playerbots|r");
             }
 
             if ((sPlayerbotAIConfig->enabled || sPlayerbotAIConfig->randomBotAutologin) && player->IsGameMaster())
@@ -123,6 +125,26 @@ public:
                     ChatHandler(player->GetSession()).SendSysMessage("|cff00ff00Playerbots:|r bot initialization at server startup takes about '" + roundedTime + "' minutes.");
             }
         }
+    }
+
+    bool OnPlayerBeforeTeleport(Player* player, uint32 mapid, float /*x*/, float /*y*/, float /*z*/, float /*orientation*/, uint32 /*options*/, Unit* /*target*/) override
+    {
+        // Only apply to bots to prevent affecting real players
+        if (!player || !player->GetSession()->IsBot())
+            return true;
+
+        // If changing maps, proactively clean visibility references to prevent
+        // stale pointers in other players' visibility maps during the teleport.
+        // This fixes a race condition where:
+        // 1. Bot A teleports and its visible objects start getting cleaned up
+        // 2. Bot B is simultaneously updating visibility and tries to access objects in Bot A's old visibility map
+        // 3. Those objects may already be freed, causing a segmentation fault
+        if (player->GetMapId() != mapid && player->IsInWorld())
+        {
+            player->GetObjectVisibilityContainer().CleanVisibilityReferences();
+        }
+
+        return true;  // Allow teleport to continue
     }
 
     void OnPlayerAfterUpdate(Player* player, uint32 diff) override
@@ -146,14 +168,17 @@ public:
             {
                 botAI->HandleCommand(type, msg, player);
 
-                return false;
+                // hotfix; otherwise the server will crash when whispering logout
+                // https://github.com/mod-playerbots/mod-playerbots/pull/1838
+                // TODO: find the root cause and solve it. (does not happen in party chat)
+                if (msg == "logout")
+                    return false;
             }
         }
-
         return true;
     }
 
-    void OnPlayerChat(Player* player, uint32 type, uint32 /*lang*/, std::string& msg, Group* group) override
+    bool OnPlayerCanUseChat(Player* player, uint32 type, uint32 /*lang*/, std::string& msg, Group* group) override
     {
         for (GroupReference* itr = group->GetFirstMember(); itr != nullptr; itr = itr->next())
         {
@@ -165,9 +190,10 @@ public:
                 }
             }
         }
+        return true;
     }
 
-    void OnPlayerChat(Player* player, uint32 type, uint32 /*lang*/, std::string& msg) override
+    bool OnPlayerCanUseChat(Player* player, uint32 type, uint32 /*lang*/, std::string& msg, Guild* guild) override
     {
         if (type == CHAT_MSG_GUILD)
         {
@@ -186,9 +212,10 @@ public:
                 }
             }
         }
+        return true;
     }
 
-    void OnPlayerChat(Player* player, uint32 type, uint32 /*lang*/, std::string& msg, Channel* channel) override
+    bool OnPlayerCanUseChat(Player* player, uint32 type, uint32 /*lang*/, std::string& msg, Channel* channel) override
     {
         if (PlayerbotMgr* playerbotMgr = GET_PLAYERBOT_MGR(player))
         {
@@ -199,11 +226,13 @@ public:
         }
 
         sRandomPlayerbotMgr->HandleCommand(type, msg, player);
+        return true;
     }
 
     bool OnPlayerBeforeAchievementComplete(Player* player, AchievementEntry const* achievement) override
     {
-        if (sRandomPlayerbotMgr->IsRandomBot(player) && (achievement->flags == 256 || achievement->flags == 768))
+        if ((sRandomPlayerbotMgr->IsRandomBot(player) || sRandomPlayerbotMgr->IsAddclassBot(player)) &&
+            (achievement->flags & (ACHIEVEMENT_FLAG_REALM_FIRST_REACH | ACHIEVEMENT_FLAG_REALM_FIRST_KILL)))
         {
             return false;
         }
@@ -314,7 +343,8 @@ class PlayerbotsWorldScript : public WorldScript
 {
 public:
     PlayerbotsWorldScript() : WorldScript("PlayerbotsWorldScript", {
-        WORLDHOOK_ON_BEFORE_WORLD_INITIALIZED
+        WORLDHOOK_ON_BEFORE_WORLD_INITIALIZED,
+        WORLDHOOK_ON_UPDATE
     }) {}
 
     void OnBeforeWorldInitialized() override
@@ -331,7 +361,7 @@ public:
         LOG_INFO("server.loading", "║     mod-playerbots is a community-driven open-source     ║");
         LOG_INFO("server.loading", "║  project based on AzerothCore, licensed under AGPLv3.0   ║");
         LOG_INFO("server.loading", "╟──────────────────────────────────────────────────────────╢");
-        LOG_INFO("server.loading", "║      https://github.com/liyunfan1223/mod-playerbots      ║");
+        LOG_INFO("server.loading", "║      https://github.com/mod-playerbots/mod-playerbots    ║");
         LOG_INFO("server.loading", "╚══════════════════════════════════════════════════════════╝");
 
         uint32 oldMSTime = getMSTime();
@@ -343,6 +373,13 @@ public:
 
         LOG_INFO("server.loading", ">> Loaded playerbots config in {} ms", GetMSTimeDiffToNow(oldMSTime));
         LOG_INFO("server.loading", " ");
+        LOG_INFO("server.loading", "Playerbots World Thread Processor initialized");
+    }
+
+    void OnUpdate(uint32 diff) override
+    {
+        sPlayerbotWorldProcessor->Update(diff);
+        sRandomPlayerbotMgr->UpdateAI(diff);  // World thread only
     }
 };
 
@@ -404,8 +441,7 @@ public:
 
     void OnPlayerbotUpdate(uint32 diff) override
     {
-        sRandomPlayerbotMgr->UpdateAI(diff);
-        sRandomPlayerbotMgr->UpdateSessions();
+        sRandomPlayerbotMgr->UpdateSessions();  // Per-bot updates only
     }
 
     void OnPlayerbotUpdateSessions(Player* player) override

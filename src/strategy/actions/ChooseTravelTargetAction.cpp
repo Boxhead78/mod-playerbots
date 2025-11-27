@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU GPL v2 license, you may redistribute it
- * and/or modify it under version 2 of the License, or (at your option), any later version.
+ * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
+ * and/or modify it under version 3 of the License, or (at your option), any later version.
  */
 
 #include "ChooseTravelTargetAction.h"
@@ -119,7 +119,6 @@ void ChooseTravelTargetAction::getNewTarget(TravelTarget* newTarget, TravelTarge
             }
         }
     }
-
 
     //Continue current target. 90% chance
     if (!foundTarget && urand(1, 100) > 10)
@@ -673,7 +672,7 @@ bool ChooseTravelTargetAction::SetExploreTarget(TravelTarget* target)
         //271 south shore
         //35 booty bay
         //380 The Barrens The Crossroads
-        if(((ExploreTravelDestination * )activeTarget)->getAreaId() == 380)
+        if (((ExploreTravelDestination * )activeTarget)->getAreaId() == 380)
         {
             activePoints.push_back(activeTarget->getPoints(true)[0]);
         }

@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU GPL v2 license, you may redistribute it
- * and/or modify it under version 2 of the License, or (at your option), any later version.
+ * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
+ * and/or modify it under version 3 of the License, or (at your option), any later version.
  */
 
 #include "PaladinActions.h"
@@ -250,7 +250,6 @@ bool CastBlessingOfWisdomOnPartyAction::Execute(Event event)
     return botAI->CastSpell(castName, target);
 }
 
-
 Value<Unit*>* CastBlessingOfSanctuaryOnPartyAction::GetTargetValue()
 {
     return context->GetValue<Unit*>(
@@ -487,7 +486,6 @@ Unit* CastRighteousDefenseAction::GetTarget()
     }
     return current_target->GetVictim();
 }
-
 
 bool CastDivineSacrificeAction::isUseful()
 {

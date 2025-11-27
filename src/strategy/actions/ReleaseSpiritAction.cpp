@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU GPL v2 license, you may redistribute it
- * and/or modify it under version 2 of the License, or (at your option), any later version.
+ * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
+ * and/or modify it under version 3 of the License, or (at your option), any later version.
  */
 
 #include "ReleaseSpiritAction.h"
@@ -128,7 +128,7 @@ bool AutoReleaseSpiritAction::HandleBattlegroundSpiritHealer()
     GuidVector npcs = NearestNpcsValue(botAI, bgRange);
     Unit* spiritHealer = nullptr;
 
-    for (const auto& guid : npcs)
+    for (auto const& guid : npcs)
     {
         Unit* unit = botAI->GetUnit(guid);
         if (unit && unit->IsFriendlyTo(bot) && unit->IsSpiritService())
@@ -147,6 +147,7 @@ bool AutoReleaseSpiritAction::HandleBattlegroundSpiritHealer()
         // and in IOC it's not within clicking range when they res in own base
 
         // Teleport to nearest friendly Spirit Healer when not currently in range of one.
+        bot->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_TELEPORTED | AURA_INTERRUPT_FLAG_CHANGE_MAP);
         bot->TeleportTo(bot->GetMapId(), spiritHealer->GetPositionX(), spiritHealer->GetPositionY(), spiritHealer->GetPositionZ(), 0.f);
         RESET_AI_VALUE(bool, "combat::self target");
         RESET_AI_VALUE(WorldPosition, "current position");
@@ -191,14 +192,11 @@ bool AutoReleaseSpiritAction::ShouldDelayBattlegroundRelease() const
 {
     // The below delays release to spirit with 6 seconds.
     // This prevents currently casted (ranged) spells to be re-directed to the died bot's ghost.
-    const uint32_t key = static_cast<uint32_t>(bot->GetGUID().GetCounter());
-    std::scoped_lock<std::mutex> g(m_botReleaseTimesMutex); // threadsafe
 
-    // If the bot already is a spirit, erase release time and return true
+    // If the bot already is a spirit, reset release time and return true
     if (bot->HasPlayerFlag(PLAYER_FLAGS_GHOST))
     {
-        if (auto it = m_botReleaseTimes.find(key); it != m_botReleaseTimes.end())
-            m_botReleaseTimes.erase(it);
+        botAI->bgReleaseAttemptTime = 0;
         return true;
     }
 
@@ -206,9 +204,10 @@ bool AutoReleaseSpiritAction::ShouldDelayBattlegroundRelease() const
     const time_t now = time(nullptr);
     constexpr time_t RELEASE_DELAY = 6;
 
-    if (auto it = m_botReleaseTimes.find(key); it == m_botReleaseTimes.end())
-    {
-        m_botReleaseTimes.emplace(key, now);
+    if (botAI->bgReleaseAttemptTime == 0)
+        botAI->bgReleaseAttemptTime = now;
+
+    if (now - botAI->bgReleaseAttemptTime < RELEASE_DELAY)
         return false;
     }
     else
@@ -216,9 +215,8 @@ bool AutoReleaseSpiritAction::ShouldDelayBattlegroundRelease() const
         if (now - it->second < RELEASE_DELAY)
             return false;
 
-        m_botReleaseTimes.erase(it);
-        return true;
-    }
+    botAI->bgReleaseAttemptTime = 0;
+    return true;
 }
 
 bool RepopAction::Execute(Event event)
@@ -250,6 +248,7 @@ int64 RepopAction::CalculateDeadTime() const
 
 void RepopAction::PerformGraveyardTeleport(const GraveyardStruct* graveyard) const
 {
+    bot->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_TELEPORTED | AURA_INTERRUPT_FLAG_CHANGE_MAP);
     bot->TeleportTo(graveyard->Map, graveyard->x, graveyard->y, graveyard->z, 0.f);
     RESET_AI_VALUE(bool, "combat::self target");
     RESET_AI_VALUE(WorldPosition, "current position");
