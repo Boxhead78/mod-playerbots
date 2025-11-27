@@ -201,10 +201,10 @@ bool CanBotUseToken(ItemTemplate const* proto, Player* bot)
     // Return true only if both the class matches and the random chance succeeds
     if ((proto->AllowableClass & botClassMask) && urand(1, 100) <= 33)
     {
-        return true;
+        return true; // Bot's class is eligible to use this token
     }
 
-    return false; // Neither allowed by class nor random chance
+    return false; // Bot's class cannot use this token
 }
 
 bool RollUniqueCheck(ItemTemplate const* proto, Player* bot)

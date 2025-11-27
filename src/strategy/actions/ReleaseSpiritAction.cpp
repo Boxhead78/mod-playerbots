@@ -209,11 +209,6 @@ bool AutoReleaseSpiritAction::ShouldDelayBattlegroundRelease() const
 
     if (now - botAI->bgReleaseAttemptTime < RELEASE_DELAY)
         return false;
-    }
-    else
-    {
-        if (now - it->second < RELEASE_DELAY)
-            return false;
 
     botAI->bgReleaseAttemptTime = 0;
     return true;

@@ -4952,6 +4952,7 @@ int32 PlayerbotFactory::CalcGearScoreLimitByLevelAndQuality(uint32 level, ItemQu
             result = range.avg + (range.max - range.avg) * 0.1f * frand(0.0f, 1.0f);
             break;
         case ITEM_QUALITY_EPIC:
+        case ITEM_QUALITY_HEIRLOOM:
             result = range.avg + (range.max - range.avg) * 0.1f + (range.max - range.avg) * 0.1f * frand(0.0f, 1.0f);
             break;
         case ITEM_QUALITY_LEGENDARY:

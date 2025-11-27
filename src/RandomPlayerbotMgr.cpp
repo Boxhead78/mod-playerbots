@@ -1555,7 +1555,7 @@ bool RandomPlayerbotMgr::ProcessBot(Player* bot)
         if (!GetEventValue(botId, "dead"))
         {
             uint32 randomTime = urand(sPlayerbotAIConfig->minRandomBotReviveTime, sPlayerbotAIConfig->maxRandomBotReviveTime);
-            PlayerbotAI* botAI = GET_PLAYERBOT_AI(player);
+            PlayerbotAI* botAI = GET_PLAYERBOT_AI(bot);
             if (botAI && botAI->GetMaster())
                 randomTime = urand(15,30);
 

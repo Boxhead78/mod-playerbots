@@ -6503,6 +6503,7 @@ float PlayerbotAI::GetItemScoreMultiplier(ItemQualities quality)
             return 1.331f;
             break;
         case ITEM_QUALITY_EPIC:
+        case ITEM_QUALITY_HEIRLOOM:
             return 1.4641f;
             break;
         case ITEM_QUALITY_LEGENDARY:

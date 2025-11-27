@@ -39,7 +39,6 @@ private:
     bool ShouldDelayBattlegroundRelease() const;
 
     time_t m_bgGossipTime = 0;
-    inline static std::mutex m_botReleaseTimesMutex;
 };
 
 class RepopAction : public SpiritHealerAction

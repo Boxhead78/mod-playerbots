@@ -115,7 +115,7 @@ bool LfgJoinAction::JoinLFG()
                             dungeon->TypeID != LFG_TYPE_HEROIC))
                 continue;
 
-            auto auto& botLevel = bot->GetLevel();
+            uint8 botLevel = bot->GetLevel();
 
             /*LFG_TYPE_RANDOM on classic is 15-58 so bot over level 25 will never queue*/
             if (dungeon->MinLevel && (botLevel < dungeon->MinLevel || botLevel > dungeon->MaxLevel) ||

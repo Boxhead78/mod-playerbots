@@ -92,6 +92,7 @@ float StatsWeightCalculator::CalculateItem(uint32 itemId, int32 randomPropertyId
     CalculateSocketBonus(player_, proto);
 
     if (enable_quality_blend_)
+    {
         // Blend with item quality and level
         weight_ *= PlayerbotAI::GetItemScoreMultiplier(ItemQualities(proto->Quality));
 

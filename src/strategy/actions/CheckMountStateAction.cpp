@@ -103,9 +103,9 @@ bool CheckMountStateAction::isUseful()
         if (bot->HasAura(BG_WS_SPELL_WARSONG_FLAG) || bot->HasAura(BG_WS_SPELL_SILVERWING_FLAG) || bot->HasAura(BG_EY_NETHERSTORM_FLAG_SPELL))
             return false;
 
-        // Only mount if BG starts in less than 60 sec
+        // Only mount if BG starts in less than 30 sec
         if (Battleground* bg = bot->GetBattleground())
-            if (bg->GetStatus() == STATUS_WAIT_JOIN && ((bg->GetStartDelayTime() > BG_START_DELAY_1M && urand(0, 99) < 66) || bg->GetStartDelayTime() > BG_START_DELAY_30S)) // (bg->GetStartDelayTime() > BG_START_DELAY_1M && urand(0, 99) < 66) does not work yet for some reason, but bg->GetStartDelayTime() > BG_START_DELAY_30S does
+            if (bg->GetStatus() == STATUS_WAIT_JOIN && bg->GetStartDelayTime() > BG_START_DELAY_30S)
                 return false;
     }
 
@@ -330,24 +330,16 @@ bool CheckMountStateAction::TryPreferredMount(Player* master) const
     // Pick a random preferred mount from the selection, if available
     uint32 chosenMountId = 0;
 
-    auto& groundMounts = mountCache[botGUID].groundMounts;
-    auto& flightMounts = mountCache[botGUID].flightMounts;
-
-    if (GetMountType(master) == 0)
+    if (GetMountType(master) == 0 && !mountCache[botGUID].groundMounts.empty())
     {
-        if (!groundMounts.empty())
-        {
-            uint32 index = urand(0, static_cast<uint32>(groundMounts.size() - 1));
-            chosenMountId = groundMounts[index];
-        }
+        uint32 index = urand(0, mountCache[botGUID].groundMounts.size() - 1);
+        chosenMountId = mountCache[botGUID].groundMounts[index];
     }
-    else if (GetMountType(master) == 1)
+
+    else if (GetMountType(master) == 1 && !mountCache[botGUID].flightMounts.empty())
     {
-        if (!flightMounts.empty())
-        {
-            uint32 index = urand(0, static_cast<uint32>(flightMounts.size() - 1));
-            chosenMountId = flightMounts[index];
-        }
+        uint32 index = urand(0, mountCache[botGUID].flightMounts.size() - 1);
+        chosenMountId = mountCache[botGUID].flightMounts[index];
     }
 
     // No suitable preferred mount found
@@ -393,14 +385,12 @@ bool CheckMountStateAction::TryRandomMountFiltered(const std::map<int32, std::ve
             if (bot->isMoving())
                 bot->StopMoving();
 
-            if (!ids.empty())
+            uint32 index = urand(0, ids.size() - 1);
+
+            if (botAI->CanCastSpell(ids[index], bot))
             {
-                uint32 index = urand(0, static_cast<uint32>(ids.size() - 1));
-                if (botAI->CanCastSpell(ids[index], bot))
-                {
-                    botAI->CastSpell(ids[index], bot);
-                    return true;
-                }
+                botAI->CastSpell(ids[index], bot);
+                return true;
             }
         }
     }

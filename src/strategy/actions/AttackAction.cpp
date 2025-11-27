@@ -54,29 +54,50 @@ bool AttackMyTargetAction::Execute(Event event)
 bool AttackAction::Attack(Unit* target, bool with_pet /*true*/)
 {
     Unit* oldTarget = context->GetValue<Unit*>("current target")->Get();
+    bool shouldMelee = bot->IsWithinMeleeRange(target) || botAI->IsMelee(bot);
 
-    // Flight check first
+    bool sameTarget = oldTarget == target && bot->GetVictim() == target;
+    bool inCombat = botAI->GetState() == BOT_STATE_COMBAT;
+    bool sameAttackMode = bot->HasUnitState(UNIT_STATE_MELEE_ATTACKING) == shouldMelee;
+
     if (bot->GetMotionMaster()->GetCurrentMovementGeneratorType() == FLIGHT_MOTION_TYPE ||
         bot->HasUnitState(UNIT_STATE_IN_FLIGHT))
     {
         if (verbose)
             botAI->TellError("I cannot attack in flight");
+
         return false;
     }
 
-    // ---- Hard sanity guards on target BEFORE any other use ----
     if (!target)
     {
         if (verbose)
             botAI->TellError("I have no target");
+
         return false;
     }
 
-    // Avoid use-after-free / half-removed units
-    if (!target->GetMap() || target->IsDuringRemoveFromWorld() || !target->IsInWorld())
+    if (!target->IsInWorld())
     {
         if (verbose)
-            botAI->TellError("Target is no longer available.");
+            botAI->TellError(std::string(target->GetName()) + " is no longer in the world.");
+        return false;
+    }
+
+   if ((sPlayerbotAIConfig->IsInPvpProhibitedZone(bot->GetZoneId()) ||
+     sPlayerbotAIConfig->IsInPvpProhibitedArea(bot->GetAreaId()))
+        && (target->IsPlayer() || target->IsPet()))
+    {
+        if (verbose)
+            botAI->TellError("I cannot attack other players in PvP prohibited areas.");
+
+        return false;
+    }
+
+    if (bot->IsFriendlyTo(target))
+    {
+        if (verbose)
+            botAI->TellError(std::string(target->GetName()) + " is friendly to me.");
         return false;
     }
 
@@ -94,19 +115,10 @@ bool AttackAction::Attack(Unit* target, bool with_pet /*true*/)
         return false;
     }
 
-    if ((sPlayerbotAIConfig->IsInPvpProhibitedZone(bot->GetZoneId()) ||
-         sPlayerbotAIConfig->IsInPvpProhibitedArea(bot->GetAreaId()))
-        && (target->IsPlayer() || target->IsPet()))
+    if (sameTarget && inCombat && sameAttackMode)
     {
         if (verbose)
-            botAI->TellError("I cannot attack other players in PvP prohibited areas.");
-        return false;
-    }
-
-    if (bot->IsFriendlyTo(target))
-    {
-        if (verbose)
-            botAI->TellError(std::string(target->GetName()) + " is friendly to me.");
+            botAI->TellError("I am already attacking " + std::string(target->GetName()) + ".");
         return false;
     }
 
@@ -114,20 +126,7 @@ bool AttackAction::Attack(Unit* target, bool with_pet /*true*/)
     {
         if (verbose)
             botAI->TellError("I cannot attack an invalid target.");
-        return false;
-    }
-    // ---- End guards ----
 
-    // Compute mode AFTER target was validated
-    bool shouldMelee = bot->IsWithinMeleeRange(target) || botAI->IsMelee(bot);
-    bool sameTarget = (oldTarget == target) && (bot->GetVictim() == target);
-    bool inCombat = botAI->GetState() == BOT_STATE_COMBAT;
-    bool sameAttackMode = (bot->HasUnitState(UNIT_STATE_MELEE_ATTACKING) == shouldMelee);
-
-    if (sameTarget && inCombat && sameAttackMode)
-    {
-        if (verbose)
-            botAI->TellError("I am already attacking " + std::string(target->GetName()) + ".");
         return false;
     }
 
@@ -138,9 +137,10 @@ bool AttackAction::Attack(Unit* target, bool with_pet /*true*/)
     // }
 
     ObjectGuid guid = target->GetGUID();
-    bot->SetSelection(guid);
+    bot->SetSelection(target->GetGUID());
 
-    context->GetValue<Unit*>("old target")->Set(oldTarget);
+        context->GetValue<Unit*>("old target")->Set(oldTarget);
+
     context->GetValue<Unit*>("current target")->Set(target);
     context->GetValue<LootObjectStack*>("available loot")->Get()->Add(guid);
 
