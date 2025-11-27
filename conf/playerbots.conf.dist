@@ -337,7 +337,7 @@ AiPlayerbot.DynamicReactDelay = 1
 AiPlayerbot.PassiveDelay = 10000
 
 # Minimum delay between repeating actions (chat messages, emotes etc)
-AiPlayerbot.RepeatDelay = 2000
+AiPlayerbot.RepeatDelay = 100000
 
 # Delay timers
 AiPlayerbot.ErrorDelay = 100
@@ -2092,7 +2092,7 @@ AiPlayerbot.EnableICCBuffs = 0
 ##############################################
 
 AiPlayerbot.HealMultiplier = 1.1
-AiPlayerbot.DamageMultiplier = 1.1
+AiPlayerbot.DamageMultiplier = 1.0
 AiPlayerbot.HPMultiplier = 1.1
 AiPlayerbot.ManaMultiplier = 1.1
 AiPlayerbot.DungeonRaidIncomingDamageMultiplier = 0.6

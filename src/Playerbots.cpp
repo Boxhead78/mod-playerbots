@@ -439,30 +439,22 @@ public:
 
     void ModifyHealReceived(Unit* /*target*/, Unit *healer, uint32 &heal, SpellInfo const *spellInfo) override
     {
-        // Skip potions, bandages, percentage based heals like Rune Tap, etc.
+        // Skip potions, bandages, percentage based heals etc.
         if (!sPlayerbotAIConfig->enabled || !healer || !heal || !spellInfo || spellInfo->HasAttribute(SPELL_ATTR0_NO_IMMUNITIES) || spellInfo->Mechanic == MECHANIC_BANDAGE)
-        {
             return;
-        }
 
-        // Skip percentage based heals or spells already nerfed by damage reduction
+        // Skip % based heals or spells already nerfed
         for (uint8 i = 0; i < 3; i++)
-        {
             if (spellInfo->Effects[i].Effect == SPELL_EFFECT_HEAL_MAX_HEALTH)
-            {
                 return;
-            }
-        }
-        if (spellInfo->Id == 48982 || spellInfo->Id == 20004)
-        {
-            return;
-        }
 
+        if (spellInfo->Id == 48982 || spellInfo->Id == 20004)
+            return;
+
+        // Detect if source is a bot or pet of a bot
         bool isPet = healer->GetOwner() && healer->GetOwner()->GetTypeId() == TYPEID_PLAYER;
         if (!isPet && healer->GetTypeId() != TYPEID_PLAYER)
-        {
             return;
-        }
 
         Player* player = isPet ? healer->GetOwner()->ToPlayer() : healer->ToPlayer();
         if (player && player->GetSession()->IsBot())
@@ -476,13 +468,18 @@ public:
 
         bool isPet = attacker->GetOwner() && attacker->GetOwner()->GetTypeId() == TYPEID_PLAYER;
         if (!isPet && attacker->GetTypeId() != TYPEID_PLAYER)
-        {
             return;
-        }
 
         Player* player = isPet ? attacker->GetOwner()->ToPlayer() : attacker->ToPlayer();
-        if (player && player->GetSession()->IsBot())
-            damage *= sPlayerbotAIConfig->damageMultiplier;
+        if (!player || !player->GetSession()->IsBot())
+            return;
+
+        // Apply general bot damage modifier
+        damage *= sPlayerbotAIConfig->damageMultiplier;
+
+        // Apply 25% damage reduction if in dungeon or raid
+        if (player->GetMap() && (player->GetMap()->IsNonRaidDungeon() || player->GetMap()->IsRaid()))
+            damage *= 0.75f;
     }
 
     void ModifyMeleeDamage(Unit* /*target*/, Unit* attacker, uint32& damage) override
@@ -492,13 +489,18 @@ public:
 
         bool isPet = attacker->GetOwner() && attacker->GetOwner()->GetTypeId() == TYPEID_PLAYER;
         if (!isPet && attacker->GetTypeId() != TYPEID_PLAYER)
-        {
             return;
-        }
 
         Player* player = isPet ? attacker->GetOwner()->ToPlayer() : attacker->ToPlayer();
-        if (player && player->GetSession()->IsBot())
-            damage *= sPlayerbotAIConfig->damageMultiplier;
+        if (!player || !player->GetSession()->IsBot())
+            return;
+
+        // Apply general bot damage modifier
+        damage *= sPlayerbotAIConfig->damageMultiplier;
+
+        // Apply 25% damage reduction if in dungeon or raid
+        if (player->GetMap() && (player->GetMap()->IsNonRaidDungeon() || player->GetMap()->IsRaid()))
+            damage *= 0.75f;
     }
 
     void ModifyPeriodicDamageAurasTick(Unit* /*target*/, Unit* attacker, uint32& damage, SpellInfo const* spellInfo) override
@@ -506,26 +508,29 @@ public:
         if (!sPlayerbotAIConfig->enabled || !attacker || !damage || !spellInfo)
             return;
 
-        // Do not apply reductions to healing auras - these are already modified in the ModifyHeal hook
+        // Skip healing auras (handled elsewhere)
         for (uint8 j = 0; j < MAX_SPELL_EFFECTS; ++j)
-        {
-            if (spellInfo->Effects[j].Effect == SPELL_EFFECT_APPLY_AURA && spellInfo->Effects[j].ApplyAuraName == SPELL_AURA_PERIODIC_HEAL)
-            {
+            if (spellInfo->Effects[j].Effect == SPELL_EFFECT_APPLY_AURA &&
+                spellInfo->Effects[j].ApplyAuraName == SPELL_AURA_PERIODIC_HEAL)
                 return;
-            }
-        }
 
         bool isPet = attacker->GetOwner() && attacker->GetOwner()->GetTypeId() == TYPEID_PLAYER;
         if (!isPet && attacker->GetTypeId() != TYPEID_PLAYER)
-        {
             return;
-        }
 
         Player* player = isPet ? attacker->GetOwner()->ToPlayer() : attacker->ToPlayer();
-        if (player && player->GetSession()->IsBot())
-            damage *= sPlayerbotAIConfig->damageMultiplier;
+        if (!player || !player->GetSession()->IsBot())
+            return;
+
+        // Apply general bot damage modifier
+        damage *= sPlayerbotAIConfig->damageMultiplier;
+
+        // Apply 25% damage reduction if in dungeon or raid
+        if (player->GetMap() && (player->GetMap()->IsDungeon() || player->GetMap()->IsRaid()))
+            damage *= 0.75f;
     }
 };
+
 
 class PlayerBotsBGScript : public BGScript
 {

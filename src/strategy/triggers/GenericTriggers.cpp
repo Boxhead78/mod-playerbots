@@ -319,7 +319,7 @@ RandomTrigger::RandomTrigger(PlayerbotAI* botAI, std::string const name, int32 p
 
 bool RandomTrigger::IsActive()
 {
-    if (getMSTime() - lastCheck < sPlayerbotAIConfig->repeatDelay)
+    if (getMSTime() - lastCheck < 2000)
         return false;
 
     lastCheck = getMSTime();

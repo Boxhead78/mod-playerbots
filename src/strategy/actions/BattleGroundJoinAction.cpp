@@ -10,11 +10,15 @@
 #include "BattlegroundMgr.h"
 #include "Event.h"
 #include "GroupMgr.h"
+#include "LFG.h"
+#include "LFGMgr.h"
 #include "PlayerbotAI.h"
 #include "PlayerbotFactory.h"
 #include "Playerbots.h"
 #include "PositionValue.h"
 #include "UpdateTime.h"
+
+using namespace lfg;
 
 bool BGJoinAction::Execute(Event event)
 {
@@ -350,6 +354,10 @@ bool BGJoinAction::isUseful()
 
     // do not try if in combat
     if (bot->IsInCombat())
+        return false;
+
+    LfgState state = sLFGMgr->GetState(bot->GetGUID());
+    if (state != LFG_STATE_NONE)
         return false;
 
     // check Deserter debuff

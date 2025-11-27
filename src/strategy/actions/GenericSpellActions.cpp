@@ -435,6 +435,9 @@ bool TeleportToMaster::Execute(Event event)
 
 bool TeleportToMaster::isUseful()
 {
+    if (!bot || !botAI || !bot->IsInWorld())
+        return false;
+
     Player* master = botAI->GetMaster();
     if (!master)
         return false;
@@ -443,7 +446,7 @@ bool TeleportToMaster::isUseful()
         master->HasUnitState(UNIT_STATE_IN_FLIGHT) || bot->IsFlying() || bot->HasUnitState(UNIT_STATE_IN_FLIGHT))
         return false;
 
-    if (!bot || !bot->IsAlive() || bot->IsInCombat())
+    if (!bot->IsAlive() || bot->IsInCombat())
         return false;
 
     if (botAI->HasStrategy("stay", botAI->GetState()))
@@ -493,15 +496,15 @@ bool ReviveToMaster::Execute(Event event)
 
 bool ReviveToMaster::isUseful()
 {
+    if (!bot || !botAI || !bot->IsInWorld())
+        return false;
+
     Player* master = botAI->GetMaster();
     if (!master)
         return false;
 
     if (!master->IsAlive() || !master->IsInWorld() || master->IsFlying() ||
         master->HasUnitState(UNIT_STATE_IN_FLIGHT) || bot->IsFlying() || bot->HasUnitState(UNIT_STATE_IN_FLIGHT))
-        return false;
-
-    if (!bot)
         return false;
 
     if (bot->IsAlive())
@@ -527,7 +530,7 @@ bool CheckGroupMaster::Execute(Event event)
 
 bool CheckGroupMaster::isUseful()
 {
-    if (!bot || !botAI)
+    if (!bot || !botAI || !bot->IsInWorld())
         return false;
 
     if (bot->InBattleground() || bot->InArena())
@@ -560,11 +563,11 @@ bool GenerateEquipment::Execute(Event event)
 
 bool GenerateEquipment::isUseful()
 {
-    Player* master = botAI->GetMaster();
-    if (master)
+    if (!bot || !botAI || !bot->IsInWorld())
         return false;
 
-    if (!bot)
+    Player* master = botAI->GetMaster();
+    if (master)
         return false;
 
     if (!sRandomPlayerbotMgr->IsRandomBot(bot))

@@ -100,15 +100,23 @@ PlayerbotSecurityLevel PlayerbotSecurity::LevelFor(Player* from, DenyReason* rea
             }
         }
 
-        if (bot->InBattlegroundQueue())
-        {
-            if (!bot->GetGuildId() || bot->GetGuildId() != from->GetGuildId())
-            {
-                if (reason)
-                    *reason = PLAYERBOT_DENY_BG;
+        //if (bot->InBattlegroundQueue())
+        //{
+        //    if (!bot->GetGuildId() || bot->GetGuildId() != from->GetGuildId())
+        //    {
+        //        if (reason)
+        //            *reason = PLAYERBOT_DENY_BG;
 
-                return PLAYERBOT_SECURITY_TALK;
-            }
+        //        return PLAYERBOT_SECURITY_TALK;
+        //    }
+        //}
+
+        if (bot->InBattleground())
+        {
+            if (reason)
+                *reason = PLAYERBOT_DENY_BG_INSIDE;
+
+            return PLAYERBOT_SECURITY_TALK;
         }
 
         /*if (bot->isDead())
@@ -266,6 +274,9 @@ bool PlayerbotSecurity::CheckLevelFor(PlayerbotSecurityLevel level, bool silent,
                     break;
                 case PLAYERBOT_DENY_LFG:
                     out << "I am in a queue for dungeon. Will do it later";
+                    break;
+                case PLAYERBOT_DENY_BG_INSIDE:
+                    out << "I am in an active BG. Will do it later";
                     break;
                 default:
                     out << "I can't do that";

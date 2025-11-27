@@ -6443,7 +6443,6 @@ uint32 PlayerbotAI::GetReactDelay()
     if (inBG)
         return static_cast<uint32>(base * (sPlayerbotAIConfig->fastReactInBG ? 0.5f : 2.5f));
 
-
     // When in combat or player nearby, return 5 times the base
     if (bot->IsInCombat() || currentState == BOT_STATE_COMBAT || HasPlayerNearby(sPlayerbotAIConfig->BotActiveAloneForceWhenInRadius))
         return base * 5;

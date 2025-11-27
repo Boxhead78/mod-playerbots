@@ -11,6 +11,7 @@
 #include "PlayerbotSecurity.h"
 #include "Playerbots.h"
 #include "WorldPacket.h"
+#include <BattlegroundMgr.h>
 
 bool AcceptInvitationAction::Execute(Event event)
 {
@@ -38,6 +39,30 @@ bool AcceptInvitationAction::Execute(Event event)
     if (bot->isAFK())
         bot->ToggleAFK();
 
+    // Leave LFG
+    WorldPacket* lfgPacket = new WorldPacket(CMSG_LFG_LEAVE);
+    bot->GetSession()->QueuePacket(lfgPacket);
+
+    // Leave BG Queue
+    BattlegroundQueueTypeId queueTypeId = bot->GetBattlegroundQueueTypeId(0);
+    BattlegroundTypeId _bgTypeId = BattlegroundMgr::BGTemplateId(queueTypeId);
+    uint8 type = false;
+    uint16 unk = 0x1F90;
+    uint8 unk2 = 0x0;
+    bool isArena = false;
+
+    ArenaType arenaType = ArenaType(BattlegroundMgr::BGArenaType(queueTypeId));
+    if (arenaType)
+    {
+        isArena = true;
+        type = arenaType;
+    }
+
+    WorldPacket bgPacket(CMSG_BATTLEFIELD_PORT, 20);
+    bgPacket << type << unk2 << (uint32)_bgTypeId << unk << uint8(0);
+    bot->GetSession()->QueuePacket(new WorldPacket(bgPacket));
+
+    // Join Group
     WorldPacket p;
     uint32 roles_mask = 0;
     p << roles_mask;
