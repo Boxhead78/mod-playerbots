@@ -22,7 +22,7 @@ bool ReviveFromCorpseAction::Execute(Event event)
 
     // follow group Leader when group Leader revives
     WorldPacket& p = event.getPacket();
-    if (!p.empty() && p.GetOpcode() == CMSG_RECLAIM_CORPSE && master && bot->IsAlive())
+    if (!p.empty() && p.GetOpcode() == CMSG_RECLAIM_CORPSE && groupLeader && bot->IsAlive())
     {
         botAI->TellMasterNoFacing("Welcome back!");
         botAI->ChangeStrategy("+follow,-stay", BOT_STATE_NON_COMBAT);
