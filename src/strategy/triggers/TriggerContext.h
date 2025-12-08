@@ -330,10 +330,10 @@ private:
     static Trigger* often(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "often", 5); }
     static Trigger* very_often(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "very often", 3); }
     static Trigger* very_frequent(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "very frequent", 1); }
-    static Trigger* RandomLFG(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "random lfg", 35); }
-    static Trigger* RandomBG(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "bg lfg", 25); }
-    static Trigger* RandomLFGLeave(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "random lfg leave", 900); }
-    static Trigger* RandomChat(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "random chat", 3000); }
+    static Trigger* RandomLFG(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "random lfg", 15); }
+    static Trigger* RandomBG(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "bg lfg", 40); }
+    static Trigger* RandomLFGLeave(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "random lfg leave", 150); }
+    static Trigger* RandomChat(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "random chat", 300); }
     static Trigger* GenerateEquipmentTrigger(PlayerbotAI* botAI) { return new RandomTrigger(botAI, "generate equipment trigger", 150); }
     static Trigger* EnemyOutOfMelee(PlayerbotAI* botAI) { return new EnemyOutOfMeleeTrigger(botAI); }
     static Trigger* EnemyOutOfSpell(PlayerbotAI* botAI) { return new EnemyOutOfSpellRangeTrigger(botAI); }

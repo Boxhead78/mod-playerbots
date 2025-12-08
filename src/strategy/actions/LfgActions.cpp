@@ -105,21 +105,20 @@ bool LfgJoinAction::JoinLFG()
     if (!dungeons.size())
         return false;
 
-    // Often skip dungeon browser and go right in to raid browser
-    if (urand(0,99) < 40)
+    // Prefer dungeon finder most of the time, use raid browser occasionally
+    if (urand(0, 99) < 80)   // 80%: Random/Dungeon/Heroic first
     {
         for (std::vector<uint32>::iterator i = dungeons.begin(); i != dungeons.end(); ++i)
         {
             LFGDungeonEntry const* dungeon = sLFGDungeonStore.LookupEntry(*i);
-            if (!dungeon || (dungeon->TypeID != LFG_TYPE_RANDOM && dungeon->TypeID != LFG_TYPE_DUNGEON &&
+            if (!dungeon || (dungeon->TypeID != LFG_TYPE_RANDOM &&
+                            dungeon->TypeID != LFG_TYPE_DUNGEON &&
                             dungeon->TypeID != LFG_TYPE_HEROIC))
                 continue;
 
             uint8 botLevel = bot->GetLevel();
 
-            /*LFG_TYPE_RANDOM on classic is 15-58 so bot over level 25 will never queue*/
-            if (dungeon->MinLevel && (botLevel < dungeon->MinLevel || botLevel > dungeon->MaxLevel) ||
-                (botLevel > dungeon->MinLevel + 10 && dungeon->TypeID == LFG_TYPE_DUNGEON))
+            if (dungeon->MinLevel && (botLevel < dungeon->MinLevel || botLevel > dungeon->MaxLevel))
                 continue;
 
             selected.push_back(dungeon->ID);
@@ -127,6 +126,7 @@ bool LfgJoinAction::JoinLFG()
         }
     }
 
+    // Fallback to raid browser if no suitable dungeons found
     if (!selected.size())
     {
         for (std::vector<uint32>::iterator i = dungeons.begin(); i != dungeons.end(); ++i)
@@ -139,9 +139,9 @@ bool LfgJoinAction::JoinLFG()
             if (dungeon->GroupID < 6 || dungeon->GroupID > 9)
                 continue;
 
-            if ((botLevel == 60 && dungeon->GroupID == 6) ||                        // Raid Classic
-                (botLevel == 70 && dungeon->GroupID == 7) ||                        // Raid TBC
-                (botLevel == 80 && (dungeon->GroupID == 8 || dungeon->GroupID == 9)))  // Raid WotLK
+            if ((botLevel == 60 && dungeon->GroupID == 6) ||
+                (botLevel == 70 && dungeon->GroupID == 7) ||
+                (botLevel == 80 && (dungeon->GroupID == 8 || dungeon->GroupID == 9)))
             {
                 selected.push_back(dungeon->ID);
                 list.insert(dungeon->ID);
