@@ -332,7 +332,7 @@ public:
     void OnPlayerAfterUpdateMaxHealth(Player* player, float& value) override
     {
         // TODO: This should be adjust to use an aura like damage adjustment. This is more robust to update when changing equipment, etc.
-        if (!sPlayerbotAIConfig->enabled)
+        if (!sPlayerbotAIConfig.enabled)
         {
             return;
         }
@@ -342,13 +342,13 @@ public:
         }
 
         if (player->GetSession()->IsBot())
-            value *= sPlayerbotAIConfig->hpMultiplier;
+            value *= sPlayerbotAIConfig.hpMultiplier;
     }
 
     void OnPlayerAfterUpdateMaxPower(Player* player, Powers& power, float& value) override
     {
         // TODO: This should be adjust to use an aura like damage adjustment. This is more robust to update when changing equipment, etc.
-        if (!sPlayerbotAIConfig->enabled || power != POWER_MANA)
+        if (!sPlayerbotAIConfig.enabled || power != POWER_MANA)
         {
             return;
         }
@@ -358,7 +358,7 @@ public:
         }
 
         if (player->GetSession()->IsBot())
-            value *= sPlayerbotAIConfig->manaMultiplier;
+            value *= sPlayerbotAIConfig.manaMultiplier;
     }
 };
 
@@ -558,7 +558,7 @@ public:
     void ModifyHealReceived(Unit* /*target*/, Unit *healer, uint32 &heal, SpellInfo const *spellInfo) override
     {
         // Skip potions, bandages, percentage based heals etc.
-        if (!sPlayerbotAIConfig->enabled || !healer || !heal || !spellInfo || spellInfo->HasAttribute(SPELL_ATTR0_NO_IMMUNITIES) || spellInfo->Mechanic == MECHANIC_BANDAGE)
+        if (!sPlayerbotAIConfig.enabled || !healer || !heal || !spellInfo || spellInfo->HasAttribute(SPELL_ATTR0_NO_IMMUNITIES) || spellInfo->Mechanic == MECHANIC_BANDAGE)
             return;
 
         // Skip % based heals or spells already nerfed
@@ -576,12 +576,12 @@ public:
 
         Player* player = isPet ? healer->GetOwner()->ToPlayer() : healer->ToPlayer();
         if (player && player->GetSession()->IsBot())
-            heal *= sPlayerbotAIConfig->healMultiplier;
+            heal *= sPlayerbotAIConfig.healMultiplier;
     }
 
     void ModifySpellDamageTaken(Unit* /*target*/, Unit* attacker, int32& damage, SpellInfo const* /*spellInfo*/) override
     {
-        if (!sPlayerbotAIConfig->enabled || !attacker || !damage)
+        if (!sPlayerbotAIConfig.enabled || !attacker || !damage)
             return;
 
         bool isPet = attacker->GetOwner() && attacker->GetOwner()->GetTypeId() == TYPEID_PLAYER;
@@ -593,7 +593,7 @@ public:
             return;
 
         // Apply general bot damage modifier
-        damage *= sPlayerbotAIConfig->damageMultiplier;
+        damage *= sPlayerbotAIConfig.damageMultiplier;
 
         // Apply 25% damage reduction if in dungeon or raid
         if (player->GetMap() && (player->GetMap()->IsNonRaidDungeon() || player->GetMap()->IsRaid()))
@@ -602,7 +602,7 @@ public:
 
     void ModifyMeleeDamage(Unit* /*target*/, Unit* attacker, uint32& damage) override
     {
-        if (!sPlayerbotAIConfig->enabled || !attacker || !damage)
+        if (!sPlayerbotAIConfig.enabled || !attacker || !damage)
             return;
 
         bool isPet = attacker->GetOwner() && attacker->GetOwner()->GetTypeId() == TYPEID_PLAYER;
@@ -614,7 +614,7 @@ public:
             return;
 
         // Apply general bot damage modifier
-        damage *= sPlayerbotAIConfig->damageMultiplier;
+        damage *= sPlayerbotAIConfig.damageMultiplier;
 
         // Apply 25% damage reduction if in dungeon or raid
         if (player->GetMap() && (player->GetMap()->IsNonRaidDungeon() || player->GetMap()->IsRaid()))
@@ -623,7 +623,7 @@ public:
 
     void ModifyPeriodicDamageAurasTick(Unit* /*target*/, Unit* attacker, uint32& damage, SpellInfo const* spellInfo) override
     {
-        if (!sPlayerbotAIConfig->enabled || !attacker || !damage || !spellInfo)
+        if (!sPlayerbotAIConfig.enabled || !attacker || !damage || !spellInfo)
             return;
 
         // Skip healing auras (handled elsewhere)
@@ -641,7 +641,7 @@ public:
             return;
 
         // Apply general bot damage modifier
-        damage *= sPlayerbotAIConfig->damageMultiplier;
+        damage *= sPlayerbotAIConfig.damageMultiplier;
 
         // Apply 25% damage reduction if in dungeon or raid
         if (player->GetMap() && (player->GetMap()->IsDungeon() || player->GetMap()->IsRaid()))
