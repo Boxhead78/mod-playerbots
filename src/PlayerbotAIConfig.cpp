@@ -7,9 +7,10 @@
 #include <iostream>
 #include "Config.h"
 #include "NewRpgInfo.h"
-#include "PlayerbotDungeonSuggestionMgr.h"
+#include "PlayerbotDungeonRepository.h"
 #include "PlayerbotFactory.h"
 #include "Playerbots.h"
+#include "PlayerbotGuildMgr.h"
 #include "RandomItemMgr.h"
 #include "RandomPlayerbotFactory.h"
 #include "RandomPlayerbotMgr.h"
@@ -165,7 +166,7 @@ bool PlayerbotAIConfig::Initialize()
         pvpProhibitedZoneIds);
     LoadList<std::vector<uint32>>(
         sConfigMgr->GetOption<std::string>("AiPlayerbot.PvpProhibitedAreaIds",
-                                           "976,35,392,2268,4161,4010,4317,4312,3649,3887,3958,3724,4080,3938,3754"),
+                                           "976,35,392,2268,4161,4010,4317,4312,3649,3887,3958,3724,4080,3938,3754,3786,3973"),
         pvpProhibitedAreaIds);
     fastReactInBG = sConfigMgr->GetOption<bool>("AiPlayerbot.FastReactInBG", true);
     LoadList<std::vector<uint32>>(
@@ -222,6 +223,11 @@ bool PlayerbotAIConfig::Initialize()
 
     EnableICCBuffs = sConfigMgr->GetOption<bool>("AiPlayerbot.EnableICCBuffs", true);
 
+    //////////////////////////// Professions
+    fishingDistanceFromMaster = sConfigMgr->GetOption<float>("AiPlayerbot.FishingDistanceFromMaster", 10.0f);
+    endFishingWithMaster = sConfigMgr->GetOption<float>("AiPlayerbot.EndFishingWithMaster", 30.0f);
+    fishingDistance = sConfigMgr->GetOption<float>("AiPlayerbot.FishingDistance", 40.0f);
+    enableFishingWithMaster = sConfigMgr->GetOption<bool>("AiPlayerbot.EnableFishingWithMaster", true);
     //////////////////////////// CHAT
     enableBroadcasts = sConfigMgr->GetOption<bool>("AiPlayerbot.EnableBroadcasts", true);
     randomBotTalk = sConfigMgr->GetOption<bool>("AiPlayerbot.RandomBotTalk", false);
@@ -667,24 +673,25 @@ bool PlayerbotAIConfig::Initialize()
     }
 
     // Assign account types after accounts are created
-    sRandomPlayerbotMgr->AssignAccountTypes();
+    sRandomPlayerbotMgr.AssignAccountTypes();
 
-    if (sPlayerbotAIConfig->enabled)
+    if (sPlayerbotAIConfig.enabled)
     {
-        sRandomPlayerbotMgr->Init();
+        sRandomPlayerbotMgr.Init();
     }
 
-    sRandomItemMgr->Init();
-    sRandomItemMgr->InitAfterAhBot();
-    sPlayerbotTextMgr->LoadBotTexts();
-    sPlayerbotTextMgr->LoadBotTextChance();
+    PlayerbotGuildMgr::instance().Init();
+    sRandomItemMgr.Init();
+    sRandomItemMgr.InitAfterAhBot();
+    PlayerbotTextMgr::instance().LoadBotTexts();
+    PlayerbotTextMgr::instance().LoadBotTextChance();
     PlayerbotFactory::Init();
 
     AiObjectContext::BuildAllSharedContexts();
 
-    if (sPlayerbotAIConfig->randomBotSuggestDungeons)
+    if (sPlayerbotAIConfig.randomBotSuggestDungeons)
     {
-        sPlayerbotDungeonSuggestionMgr->LoadDungeonSuggestions();
+        PlayerbotDungeonRepository::instance().LoadDungeonSuggestions();
     }
 
     excludedHunterPetFamilies.clear();
