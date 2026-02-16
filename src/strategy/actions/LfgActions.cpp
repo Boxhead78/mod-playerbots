@@ -326,17 +326,33 @@ bool LfgAcceptAction::Execute(Event event)
 
 bool LfgLeaveAction::Execute(Event event)
 {
-    // Don't leave if lfg strategy enabled
-    // if (botAI->HasStrategy("lfg", BOT_STATE_NON_COMBAT))
-    //    return false;
-
     // Don't leave if already invited / in dungeon, but always leave in raidbrowser
-    if (sLFGMgr->GetState(bot->GetGUID()) > LFG_STATE_QUEUED && sLFGMgr->GetState(bot->GetGUID()) != LFG_STATE_RAIDBROWSER)
+    LfgState state = sLFGMgr->GetState(bot->GetGUID());
+    if (state > LFG_STATE_QUEUED && state != LFG_STATE_RAIDBROWSER)
         return false;
+
+    // If we're inside a dungeon and there is at least one real player in our group,
+    // never leave LFG (prevents breaking LFD refill inside instances).
+    if (bot->GetMap() && bot->GetMap()->IsDungeon())
+    {
+        Group* group = bot->GetGroup();
+        if (group)
+        {
+            for (GroupReference* ref = group->GetFirstMember(); ref; ref = ref->next())
+            {
+                Player* member = ref->GetSource();
+                if (!member)
+                    continue;
+
+                // Real player = not a bot (no PlayerbotAI attached)
+                if (!member->GetSession()->IsBot())
+                    return false;
+            }
+        }
+    }
 
     WorldPacket* packet = new WorldPacket(CMSG_LFG_LEAVE);
     bot->GetSession()->QueuePacket(packet);
-    // sLFGMgr->LeaveLfg(bot->GetGUID());
     return true;
 }
 

@@ -463,7 +463,7 @@ bool TeleportToMaster::isUseful()
     if (bot->GetMapId() != master->GetMapId())
         return true;
 
-    if (bot->GetDistance(master) <= 75.0f)
+    if (bot->GetDistance(master) <= 150.0f)
         return false;
 
     return true;

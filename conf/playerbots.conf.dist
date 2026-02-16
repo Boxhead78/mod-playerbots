@@ -1953,7 +1953,7 @@ AiPlayerbot.CommandSeparator = "\\\\"
 # Enable bots talking (say / yell / general chatting / lfg)
 AiPlayerbot.RandomBotTalk = 0
 # Enable playerbot emote
-AiPlayerbot.RandomBotEmote = 1
+AiPlayerbot.RandomBotEmote = 0
 # Enable dungeon suggestions for random bots
 AiPlayerbot.RandomBotSuggestDungeons = 0
 # Bots greet players when invited
