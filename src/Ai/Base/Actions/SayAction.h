@@ -1,10 +1,11 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
-#ifndef _PLAYERBOT_SAYACTION_H
-#define _PLAYERBOT_SAYACTION_H
+#ifndef PLAYERBOTS_SAYACTION_H
+#define PLAYERBOTS_SAYACTION_H
 
 #include "Action.h"
 #include "PlayerbotAI.h"
@@ -29,12 +30,12 @@ class ChatReplyAction : public Action
 {
 public:
     ChatReplyAction(PlayerbotAI* ai) : Action(ai, "chat message") {}
-    virtual bool Execute(Event event) { return true; }
+    virtual bool Execute(Event /*event*/) { return true; }
     bool isUseful() { return true; }
 
-    static void ChatReplyDo(Player* bot, uint32& type, uint32& guid1, uint32& guid2, std::string& msg, std::string& chanName, std::string& name);
-    static bool HandleThunderfuryReply(Player* bot, ChatChannelSource chatChannelSource, std::string& msg, std::string& name);
-    static bool HandleToxicLinksReply(Player* bot, ChatChannelSource chatChannelSource, std::string& msg, std::string& name);
+    static void ChatReplyDo(Player* bot, uint32& type, uint32& guid1, std::string& msg, std::string& chanName, std::string& name);
+    static bool HandleThunderfuryReply(Player* bot, ChatChannelSource chatChannelSource);
+    static bool HandleToxicLinksReply(Player* bot, ChatChannelSource chatChannelSource);
     static bool HandleWTBItemsReply(Player* bot, ChatChannelSource chatChannelSource, std::string& msg, std::string& name);
     static bool HandleLFGQuestsReply(Player* bot, ChatChannelSource chatChannelSource, std::string& msg, std::string& name);
     static bool SendGeneralResponse(Player* bot, ChatChannelSource chatChannelSource, std::string& responseMessage, std::string& name);

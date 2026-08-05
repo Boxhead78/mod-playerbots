@@ -1,11 +1,10 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "NonCombatStrategy.h"
-
-#include "Playerbots.h"
 
 void NonCombatStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
 {
@@ -19,7 +18,7 @@ void CollisionStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
         new TriggerNode("collision", { NextAction("move out of collision", 2.0f) }));
 }
 
-void MountStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
+void MountStrategy::InitTriggers(std::vector<TriggerNode*>& /*triggers*/)
 {
 }
 
@@ -58,7 +57,7 @@ void MasterFishingStrategy::InitTriggers(std::vector<TriggerNode*>& triggers)
             "random",
             {
                 NextAction("end master fishing", 12.0f),
-                NextAction("equip upgrades", 6.0f)
+                NextAction("equip upgrades packet action", 6.0f)
             }
         )
     );

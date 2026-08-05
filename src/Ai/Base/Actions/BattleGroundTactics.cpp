@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "BattleGroundTactics.h"
@@ -1299,7 +1300,7 @@ std::string const BGTactics::HandleConsoleCommandPrivate(WorldSession* session, 
     Player* player = session->GetPlayer();
     if (!player)
         return "Error - session player not found";
-    if (player->GetSession()->GetSecurity() < SEC_GAMEMASTER)
+    if (!player->CanBeGameMaster())
         return "Command can only be used by a GM";
     Battleground* bg = player->GetBattleground();
     if (!bg)
@@ -1368,7 +1369,7 @@ std::string const BGTactics::HandleConsoleCommandPrivate(WorldSession* session, 
         uint32 max = vPaths->size() - 1;
         if (num >= 0)  // num specified or found
         {
-            if (num > max)
+            if (uint32(num) > max)
                 return fmt::format("Path {} of range of 0 - {}", num, max);
             min = num;
             max = num;
@@ -1557,7 +1558,7 @@ bool BGTactics::eyJumpDown()
 //
 // actual bg tactics below
 //
-bool BGTactics::Execute(Event event)
+bool BGTactics::Execute(Event /*event*/)
 {
     Battleground* bg = bot->GetBattleground();
     if (!bg)
@@ -2177,7 +2178,7 @@ bool BGTactics::selectObjective(bool reset)
 
             uint8 defendersProhab = 3;  // Default balanced
 
-            switch (strategy)
+            switch (static_cast<uint8>(strategy))
             {
                 case 0:
                 case 1:
@@ -2497,7 +2498,6 @@ bool BGTactics::selectObjective(bool reset)
             EYBotStrategy strategyHorde = static_cast<EYBotStrategy>(GetBotStrategyForTeam(bg, TEAM_HORDE));
             EYBotStrategy strategyAlliance = static_cast<EYBotStrategy>(GetBotStrategyForTeam(bg, TEAM_ALLIANCE));
             EYBotStrategy strategy = (team == TEAM_ALLIANCE) ? strategyAlliance : strategyHorde;
-            EYBotStrategy enemyStrategy = (team == TEAM_ALLIANCE) ? strategyHorde : strategyAlliance;
 
             auto IsOwned = [&](uint32 nodeId) -> bool
             { return eyeOfTheStormBG->GetCapturePointInfo(nodeId)._ownerTeamId == team; };
@@ -3231,7 +3231,6 @@ bool BGTactics::selectObjectiveWp(std::vector<BattleBotPath*> const& vPaths)
     if (bgType == BATTLEGROUND_RB)
         bgType = bg->GetBgTypeID(true);
 
-    PositionMap& posMap = context->GetValue<PositionMap&>("position")->Get();
     PositionInfo pos = context->GetValue<PositionMap&>("position")->Get()["bg objective"];
     if (!pos.isSet())
         return false;
@@ -3326,7 +3325,7 @@ bool BGTactics::selectObjectiveWp(std::vector<BattleBotPath*> const& vPaths)
 
         // don't pick path where bot is already closest to the paths closest point to target (it means path cant lead it
         // anywhere) don't pick path where closest point is too far away
-        if (closestPointIndex == (reverse ? 0 : path->size() - 1) || closestPointDistToBot > botDistanceLimit)
+        if (closestPointIndex == int(reverse ? 0 : path->size() - 1) || closestPointDistToBot > botDistanceLimit)
             continue;
 
         // creates a score based on dist-to-bot and dist-to-destination, where lower is better, and dist-to-bot is more
@@ -4249,7 +4248,7 @@ bool BGTactics::IsLockedInsideKeep()
     return false;
 }
 
-bool ArenaTactics::Execute(Event event)
+bool ArenaTactics::Execute(Event /*event*/)
 {
     if (!bot->InBattleground())
     {

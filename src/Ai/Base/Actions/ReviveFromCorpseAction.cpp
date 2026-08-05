@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "ReviveFromCorpseAction.h"
@@ -9,7 +10,7 @@
 #include "FleeManager.h"
 #include "GameGraveyard.h"
 #include "MapMgr.h"
-#include "PlayerbotFactory.h"
+#include "PlayerbotTextMgr.h"
 #include "Playerbots.h"
 #include "RandomPlayerbotMgr.h"
 #include "ServerFacade.h"
@@ -67,7 +68,7 @@ bool ReviveFromCorpseAction::Execute(Event event)
     return true;
 }
 
-bool FindCorpseAction::Execute(Event event)
+bool FindCorpseAction::Execute(Event /*event*/)
 {
     if (bot->InBattleground())
         return false;
@@ -143,7 +144,7 @@ bool FindCorpseAction::Execute(Event event)
             {
                 float rx, ry, rz;
                 if (manager.CalculateDestination(&rx, &ry, &rz))
-                    moveToPos = WorldPosition(moveToPos.getMapId(), rx, ry, rz, 0.0);
+                    moveToPos = WorldPosition(moveToPos.GetMapId(), rx, ry, rz, 0.0);
                 else if (!moveToPos.GetReachableRandomPointOnGround(bot, reclaimDist, urand(0, 1)))
                     moveToPos = corpsePos;
             }
@@ -163,7 +164,7 @@ bool FindCorpseAction::Execute(Event event)
         {
             bot->GetMotionMaster()->Clear();
             bot->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_TELEPORTED | AURA_INTERRUPT_FLAG_CHANGE_MAP);
-            bot->TeleportTo(moveToPos.getMapId(), moveToPos.getX(), moveToPos.getY(), moveToPos.getZ(), 0);
+            bot->TeleportTo(moveToPos.GetMapId(), moveToPos.GetPositionX(), moveToPos.GetPositionY(), moveToPos.GetPositionZ(), 0);
         }
 
         moved = true;
@@ -177,7 +178,7 @@ bool FindCorpseAction::Execute(Event event)
             if (deadTime < 10 * MINUTE && dCount < 5)  // Look for corpse up to 30 minutes.
             {
                 moved =
-                    MoveTo(moveToPos.getMapId(), moveToPos.getX(), moveToPos.getY(), moveToPos.getZ(), false, false);
+                    MoveTo(moveToPos.GetMapId(), moveToPos.GetPositionX(), moveToPos.GetPositionY(), moveToPos.GetPositionZ(), false, false);
             }
 
             if (!moved)
@@ -230,10 +231,10 @@ GraveyardStruct const* SpiritHealerAction::GetGrave(bool startZone)
             {
                 uint32 areaId = 0;
                 uint32 zoneId = 0;
-                sMapMgr->GetZoneAndAreaId(bot->GetPhaseMask(), zoneId, areaId, travelPos.getMapId(), travelPos.getX(),
-                                          travelPos.getY(), travelPos.getZ());
-                ClosestGrave = sGraveyard->GetClosestGraveyard(travelPos.getMapId(), travelPos.getX(), travelPos.getY(),
-                                                               travelPos.getZ(), bot->GetTeamId(), areaId, zoneId,
+                sMapMgr->GetZoneAndAreaId(bot->GetPhaseMask(), zoneId, areaId, travelPos.GetMapId(), travelPos.GetPositionX(),
+                                          travelPos.GetPositionY(), travelPos.GetPositionZ());
+                ClosestGrave = sGraveyard->GetClosestGraveyard(travelPos.GetMapId(), travelPos.GetPositionX(), travelPos.GetPositionY(),
+                                                               travelPos.GetPositionZ(), bot->GetTeamId(), areaId, zoneId,
                                                                bot->getClass() == CLASS_DEATH_KNIGHT);
 
                 if (ClosestGrave)
@@ -245,9 +246,9 @@ GraveyardStruct const* SpiritHealerAction::GetGrave(bool startZone)
     std::vector<uint32> races;
 
     if (bot->GetTeamId() == TEAM_ALLIANCE)
-        races = {RACE_HUMAN, RACE_DWARF, RACE_GNOME, RACE_NIGHTELF};
+        races = {RACE_HUMAN, RACE_DWARF, RACE_GNOME, RACE_NIGHTELF, RACE_DRAENEI};
     else
-        races = {RACE_ORC, RACE_TROLL, RACE_TAUREN, RACE_UNDEAD_PLAYER};
+        races = {RACE_ORC, RACE_TROLL, RACE_TAUREN, RACE_UNDEAD_PLAYER, RACE_BLOODELF};
 
     float graveDistance = -1;
 
@@ -286,7 +287,7 @@ GraveyardStruct const* SpiritHealerAction::GetGrave(bool startZone)
     return ClosestGrave;
 }
 
-bool SpiritHealerAction::Execute(Event event)
+bool SpiritHealerAction::Execute(Event /*event*/)
 {
     Corpse* corpse = bot->GetCorpse();
     if (!corpse)
@@ -316,7 +317,7 @@ bool SpiritHealerAction::Execute(Event event)
                 bot->SpawnCorpseBones();
                 context->GetValue<Unit*>("current target")->Set(nullptr);
                 bot->SetTarget();
-                botAI->TellMaster("Hello");
+                botAI->TellMaster(PlayerbotTextMgr::instance().GetBotTextOrDefault("hello", "Hello", {}));
 
                 if (dCount > 20)
                     context->GetValue<uint32>("death count")->Set(0);

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "DestroyItemAction.h"
@@ -39,7 +40,7 @@ void DestroyItemAction::DestroyItem(FindItemVisitor* visitor)
 
 bool SmartDestroyItemAction::isUseful() { return !botAI->HasActivePlayerMaster(); }
 
-bool SmartDestroyItemAction::Execute(Event event)
+bool SmartDestroyItemAction::Execute(Event /*event*/)
 {
     uint8 bagSpace = AI_VALUE(uint8, "bag space");
 

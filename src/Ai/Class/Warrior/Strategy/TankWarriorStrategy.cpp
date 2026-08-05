@@ -1,11 +1,10 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "TankWarriorStrategy.h"
-
-#include "Playerbots.h"
 
 class TankWarriorStrategyActionNodeFactory : public NamedObjectFactory<ActionNode>
 {
@@ -21,12 +20,10 @@ public:
         creators["heroic throw taunt"] = &heroic_throw_taunt;
         creators["taunt"] = &taunt;
         creators["taunt spell"] = &taunt;
-        creators["vigilance"] = &vigilance;
-        creators["enraged regeneration"] = &enraged_regeneration;
     }
 
 private:
-    static ActionNode* heroic_throw_taunt(PlayerbotAI* botAI)
+    static ActionNode* heroic_throw_taunt(PlayerbotAI* /*botAI*/)
     {
         return new ActionNode(
             "heroic throw",
@@ -36,7 +33,7 @@ private:
         );
     }
 
-    static ActionNode* heroic_throw_on_snare_target(PlayerbotAI* botAI)
+    static ActionNode* heroic_throw_on_snare_target(PlayerbotAI* /*botAI*/)
     {
         return new ActionNode(
             "heroic throw on snare target",
@@ -46,7 +43,7 @@ private:
         );
     }
 
-    static ActionNode* last_stand(PlayerbotAI* botAI)
+    static ActionNode* last_stand(PlayerbotAI* /*botAI*/)
     {
         return new ActionNode(
             "last stand",
@@ -56,7 +53,7 @@ private:
         );
     }
 
-    static ActionNode* devastate(PlayerbotAI* botAI)
+    static ActionNode* devastate(PlayerbotAI* /*botAI*/)
     {
         return new ActionNode(
             "devastate",
@@ -66,7 +63,7 @@ private:
         );
     }
 
-    static ActionNode* commanding_shout(PlayerbotAI* botAI)
+    static ActionNode* commanding_shout(PlayerbotAI* /*botAI*/)
     {
         return new ActionNode(
             "commanding shout",
@@ -76,7 +73,7 @@ private:
         );
     }
 
-    static ActionNode* sunder_armor(PlayerbotAI* botAI)
+    static ActionNode* sunder_armor(PlayerbotAI* /*botAI*/)
     {
         return new ActionNode(
             "sunder armor",
@@ -86,7 +83,7 @@ private:
         );
     }
 
-    static ActionNode* charge(PlayerbotAI* botAI)
+    static ActionNode* charge(PlayerbotAI* /*botAI*/)
     {
         return new ActionNode(
             "charge",
@@ -96,32 +93,12 @@ private:
         );
     }
 
-    static ActionNode* taunt(PlayerbotAI* botAI)
+    static ActionNode* taunt(PlayerbotAI* /*botAI*/)
     {
         return new ActionNode(
             "taunt",
             /*P*/ {},
             /*A*/ { NextAction("heroic throw taunt") },
-            /*C*/ {}
-        );
-    }
-
-    static ActionNode* vigilance(PlayerbotAI* botAI)
-    {
-        return new ActionNode(
-            "vigilance",
-            /*P*/ {},
-            /*A*/ {},
-            /*C*/ {}
-        );
-    }
-
-    static ActionNode* enraged_regeneration(PlayerbotAI* botAI)
-    {
-        return new ActionNode(
-            "enraged regeneration",
-            /*P*/ {},
-            /*A*/ {},
             /*C*/ {}
         );
     }

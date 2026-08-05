@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "RpgTriggers.h"
@@ -31,7 +32,7 @@ bool RpgTrigger::IsActive() { return true; }
 
 Event RpgTrigger::Check()
 {
-    if (!NoRpgTargetTrigger::IsActive() && (AI_VALUE(std::string, "next rpg action") == "choose rpg target") ||
+    if ((!NoRpgTargetTrigger::IsActive() && (AI_VALUE(std::string, "next rpg action") == "choose rpg target")) ||
         !FarFromRpgTargetTrigger::IsActive())
         return Trigger::Check();
 
@@ -46,7 +47,8 @@ bool RpgTaxiTrigger::IsActive()
         return false;
 
     uint32 node =
-        sObjectMgr->GetNearestTaxiNode(guidP.getX(), guidP.getY(), guidP.getZ(), guidP.getMapId(), bot->GetTeamId());
+        sObjectMgr->GetNearestTaxiNode(guidP.GetPositionX(), guidP.GetPositionY(), guidP.GetPositionZ(),
+                                       guidP.GetMapId(), bot->GetTeamId());
 
     if (!node)
         return false;
@@ -68,7 +70,8 @@ bool RpgDiscoverTrigger::IsActive()
         return false;
 
     uint32 node =
-        sObjectMgr->GetNearestTaxiNode(guidP.getX(), guidP.getY(), guidP.getZ(), guidP.getMapId(), bot->GetTeamId());
+        sObjectMgr->GetNearestTaxiNode(guidP.GetPositionX(), guidP.GetPositionY(), guidP.GetPositionZ(),
+                                       guidP.GetMapId(), bot->GetTeamId());
 
     if (bot->m_taxi.IsTaximaskNodeKnown(node))
         return false;
@@ -161,52 +164,19 @@ bool RpgRepairTrigger::IsActive()
     return false;
 }
 
-bool RpgTrainTrigger::IsTrainerOf(CreatureTemplate const* cInfo, Player* pPlayer)
-{
-    Trainer::Trainer* trainer = sObjectMgr->GetTrainer(cInfo->Entry);
-
-    if (trainer->GetTrainerType() == Trainer::Type::Mount && trainer->GetTrainerRequirement() != pPlayer->getRace())
-    {
-        if (FactionTemplateEntry const* faction_template = sFactionTemplateStore.LookupEntry(cInfo->faction))
-            if (pPlayer->GetReputationRank(faction_template->faction) == REP_EXALTED)
-                return true;
-
-        return false;
-    }
-
-    return trainer->IsTrainerValidForPlayer(pPlayer);
-}
-
 bool RpgTrainTrigger::IsActive()
 {
-    GuidPosition guidP(getGuidP());
-
-    if (!guidP.HasNpcFlag(UNIT_NPC_FLAG_TRAINER))
+    GuidPosition gp = getGuidP();
+    if (!gp)
         return false;
 
-    CreatureTemplate const* cInfo = guidP.GetCreatureTemplate();
-
-    if (!IsTrainerOf(cInfo, bot))
+    if (!gp.HasNpcFlag(UNIT_NPC_FLAG_TRAINER))
         return false;
 
-    Trainer::Trainer* trainer = sObjectMgr->GetTrainer(cInfo->Entry);
-    FactionTemplateEntry const* factionTemplate = sFactionTemplateStore.LookupEntry(cInfo->faction);
-    float fDiscountMod = bot->GetReputationPriceDiscount(factionTemplate);
+    if (!AI_VALUE(bool, "can train"))
+        return false;
 
-    for (auto& spell : trainer->GetSpells())
-    {
-        if (!trainer->CanTeachSpell(bot, trainer->GetSpell(spell.SpellId)))
-            continue;
-
-        uint32 cost = uint32(floor(spell.MoneyCost * fDiscountMod));
-
-        if (cost > AI_VALUE2(uint32, "free money for", (uint32)NeedMoneyFor::spells))
-            continue;
-
-        return true;
-    }
-
-    return false;
+    return true;
 }
 
 bool RpgHealTrigger::IsActive()

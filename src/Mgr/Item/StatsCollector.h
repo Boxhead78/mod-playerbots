@@ -1,10 +1,11 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
-#ifndef _PLAYERBOT_STATSCOLLECTOR_H
-#define _PLAYERBOT_STATSCOLLECTOR_H
+#ifndef PLAYERBOTS_STATSCOLLECTOR_H
+#define PLAYERBOTS_STATSCOLLECTOR_H
 
 #include "ItemTemplate.h"
 #include "SpellInfo.h"
@@ -65,7 +66,7 @@ public:
     StatsCollector(StatsCollector& stats) = default;
     void Reset();
     void CollectItemStats(ItemTemplate const* proto);
-    void CollectSpellStats(uint32 spellId, float multiplier = 1.0f, int32 spellCooldown = -1);
+    void CollectSpellStats(uint32 spellId, float multiplier = 1.0f, Milliseconds spellCooldown = -1ms);
     void CollectEnchantStats(SpellItemEnchantmentEntry const* enchant, uint32 default_enchant_amount = 0);
     bool CanBeTriggeredByType(SpellInfo const* spellInfo, uint32 procFlags, bool strict = true);
     bool CheckSpellValidation(uint32 spellFamilyName, flag96 spelFalimyFlags, bool strict = true);
@@ -79,7 +80,7 @@ private:
     bool SpecialEnchantFilter(uint32 enchantSpellId);
 
     void HandleApplyAura(const SpellEffectInfo& effectInfo, float multiplier, bool canNextTrigger,
-                         uint32 triggerCooldown);
+                         Milliseconds triggerCooldown);
     float AverageValue(const SpellEffectInfo& effectInfo);
 
 private:

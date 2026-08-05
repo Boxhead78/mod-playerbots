@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "AiFactory.h"
@@ -9,9 +10,7 @@
 #include <regex>
 #include <string>
 
-#include "ChannelMgr.h"
 #include "Event.h"
-#include "GuildMgr.h"
 #include "PlayerbotTextMgr.h"
 #include "Playerbots.h"
 
@@ -56,7 +55,7 @@ static const std::unordered_set<std::string> noReplyMsgStarts = {"e ", "accept "
 
 SayAction::SayAction(PlayerbotAI* botAI) : Action(botAI, "say"), Qualified() {}
 
-bool SayAction::Execute(Event event)
+bool SayAction::Execute(Event /*event*/)
 {
     std::string text = "";
     std::map<std::string, std::string> placeholders;
@@ -92,7 +91,6 @@ bool SayAction::Execute(Event event)
     }
 
     // set delay before next say
-    time_t lastSaid = AI_VALUE2(time_t, "last said", qualifier);
     uint32 nextTime = time(nullptr) + urand(1, 30);
     botAI->GetAiObjectContext()->GetValue<time_t>("last said", qualifier)->Set(nextTime);
 
@@ -157,9 +155,8 @@ bool SayAction::isUseful()
     return (time(nullptr) - lastSaid) > 30;
 }
 
-void ChatReplyAction::ChatReplyDo(Player* bot, uint32& type, uint32& guid1, uint32& guid2, std::string& msg, std::string& chanName, std::string& name)
+void ChatReplyAction::ChatReplyDo(Player* bot, uint32& type, uint32& guid1, std::string& msg, std::string& chanName, std::string& name)
 {
-    ChatReplyType replyType = REPLY_NOT_UNDERSTAND;  // default not understand
     std::string respondsText = "";
 
     // if we're just commanding bots around, don't respond...
@@ -209,14 +206,14 @@ void ChatReplyAction::ChatReplyDo(Player* bot, uint32& type, uint32& guid1, uint
     if (msg.starts_with(sPlayerbotAIConfig.toxicLinksPrefix)
         && (GET_PLAYERBOT_AI(bot)->GetChatHelper()->ExtractAllItemIds(msg).size() > 0 || GET_PLAYERBOT_AI(bot)->GetChatHelper()->ExtractAllQuestIds(msg).size() > 0))
     {
-        HandleToxicLinksReply(bot, chatChannelSource, msg, name);
+        HandleToxicLinksReply(bot, chatChannelSource);
         return;
     }
 
     //thunderfury
     if (GET_PLAYERBOT_AI(bot)->GetChatHelper()->ExtractAllItemIds(msg).count(19019))
     {
-        HandleThunderfuryReply(bot, chatChannelSource, msg, name);
+        HandleThunderfuryReply(bot, chatChannelSource);
         return;
     }
 
@@ -224,7 +221,7 @@ void ChatReplyAction::ChatReplyDo(Player* bot, uint32& type, uint32& guid1, uint
     SendGeneralResponse(bot, chatChannelSource, messageRepy, name);
 }
 
-bool ChatReplyAction::HandleThunderfuryReply(Player* bot, ChatChannelSource chatChannelSource, std::string& msg, std::string& name)
+bool ChatReplyAction::HandleThunderfuryReply(Player* bot, ChatChannelSource chatChannelSource)
 {
     std::map<std::string, std::string> placeholders;
     const auto thunderfury = sObjectMgr->GetItemTemplate(19019);
@@ -252,7 +249,7 @@ bool ChatReplyAction::HandleThunderfuryReply(Player* bot, ChatChannelSource chat
     return true;
 }
 
-bool ChatReplyAction::HandleToxicLinksReply(Player* bot, ChatChannelSource chatChannelSource, std::string& msg, std::string& name)
+bool ChatReplyAction::HandleToxicLinksReply(Player* bot, ChatChannelSource chatChannelSource)
 {
     //quests
     std::vector<uint32> incompleteQuests;

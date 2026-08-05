@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "GuildTriggers.h"
@@ -27,7 +28,7 @@ bool LeaveLargeGuildTrigger::IsActive()
     if (botAI->IsRealPlayer())
         return false;
 
-    if (botAI->IsAlt())
+    if (botAI->IsAltBot())
         return false;
 
     if (botAI->IsInRealGuild())
@@ -39,11 +40,8 @@ bool LeaveLargeGuildTrigger::IsActive()
 
     Player* leader = ObjectAccessor::FindPlayer(guild->GetLeaderGUID());
 
-    // Only leave the guild if we know the leader is not a real player.
-    if (!leader || !GET_PLAYERBOT_AI(leader) || !GET_PLAYERBOT_AI(leader)->IsRealPlayer())
-        return false;
-
-    PlayerbotAI* leaderBotAI = GET_PLAYERBOT_AI(leader);
+    // Only leave the guild if the leader is an online bot (not a real player).
+    PlayerbotAI* leaderBotAI = leader ? GET_PLAYERBOT_AI(leader) : nullptr;
     if (!leaderBotAI || leaderBotAI->IsRealPlayer())
         return false;
 

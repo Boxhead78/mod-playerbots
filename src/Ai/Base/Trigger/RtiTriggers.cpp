@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "RtiTriggers.h"
@@ -16,5 +17,21 @@ bool NoRtiTrigger::IsActive()
         return false;
 
     Unit* target = AI_VALUE(Unit*, "rti target");
-    return target != nullptr;
+    return target == nullptr;
+}
+
+// Fires when the RTI CC target should be crowd controlled by this spell.
+// Standard path: the target is already in the attackers list and "cc target" matches the RTI
+// mark — delegates to HasCcTargetTrigger to confirm no one else is already CCing it.
+bool RtiCcTrigger::IsActive()
+{
+    Unit* rtiCcTarget = AI_VALUE(Unit*, "rti cc target");
+    if (!rtiCcTarget)
+        return false;
+
+    Unit* ccTarget = AI_VALUE2(Unit*, "cc target", getName());
+    if (ccTarget && ccTarget == rtiCcTarget)
+        return HasCcTargetTrigger::IsActive();
+
+    return botAI->CanCastSpell(getName(), rtiCcTarget);
 }

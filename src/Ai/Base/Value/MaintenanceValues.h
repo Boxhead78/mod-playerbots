@@ -1,10 +1,11 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
-#ifndef _PLAYERBOT_MAINTANCEVALUE_H
-#define _PLAYERBOT_MAINTANCEVALUE_H
+#ifndef PLAYERBOTS_MAINTENANCEVALUES_H
+#define PLAYERBOTS_MAINTENANCEVALUES_H
 
 #include "Value.h"
 
@@ -54,6 +55,14 @@ class CanSellValue : public BoolCalculatedValue
 {
 public:
     CanSellValue(PlayerbotAI* botAI) : BoolCalculatedValue(botAI, "can sell", 2 * 2000) {}
+
+    bool Calculate() override;
+};
+
+class CanTrainValue : public BoolCalculatedValue
+{
+public:
+    CanTrainValue(PlayerbotAI* botAI) : BoolCalculatedValue(botAI, "can train", 2 * 2000) {}
 
     bool Calculate() override;
 };

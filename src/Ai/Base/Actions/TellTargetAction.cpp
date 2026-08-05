@@ -1,15 +1,18 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "TellTargetAction.h"
 
 #include "Event.h"
-#include "Playerbots.h"
-#include "ThreatMgr.h"
+#include "CombatManager.h"
+#include "ThreatManager.h"
+#include "AiObjectContext.h"
+#include "PlayerbotAI.h"
 
-bool TellTargetAction::Execute(Event event)
+bool TellTargetAction::Execute(Event /*event*/)
 {
     Unit* target = context->GetValue<Unit*>("current target")->Get();
     if (target)
@@ -24,7 +27,7 @@ bool TellTargetAction::Execute(Event event)
     return true;
 }
 
-bool TellAttackersAction::Execute(Event event)
+bool TellAttackersAction::Execute(Event /*event*/)
 {
     botAI->TellMaster("--- Attackers ---");
 
@@ -41,21 +44,21 @@ bool TellAttackersAction::Execute(Event event)
 
     botAI->TellMaster("--- Threat ---");
 
-    HostileReference* ref = bot->getHostileRefMgr().getFirst();
-    if (!ref)
+    auto const& threatenedByMe = bot->GetThreatMgr().GetThreatenedByMeList();
+    if (threatenedByMe.empty())
         return true;
 
-    while (ref)
+    for (auto const& [guid, ref] : threatenedByMe)
     {
-        ThreatMgr* threatMgr = ref->GetSource();
-        Unit* unit = threatMgr->GetOwner();
+        Unit* unit = ref->GetOwner();
+        if (!unit)
+            continue;
+
         float threat = ref->GetThreat();
 
         std::ostringstream out;
         out << unit->GetName() << " (" << threat << ")";
         botAI->TellMaster(out);
-
-        ref = ref->next();
     }
 
     return true;

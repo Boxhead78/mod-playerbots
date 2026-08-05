@@ -1,5 +1,11 @@
-#ifndef _PLAYERBOT_NEWRPGINFO_H
-#define _PLAYERBOT_NEWRPGINFO_H
+/*
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
+ */
+
+#ifndef PLAYERBOTS_NEWRPGINFO_H
+#define PLAYERBOTS_NEWRPGINFO_H
 
 #include "Define.h"
 #include "ObjectGuid.h"
@@ -13,7 +19,8 @@ using NewRpgStatusTransitionProb = std::vector<std::vector<int>>;
 
 struct NewRpgInfo
 {
-    NewRpgInfo() {}
+    NewRpgInfo() : data(Idle{}) {}
+    ~NewRpgInfo() = default;
 
     // RPG_GO_GRIND
     struct GoGrind
@@ -48,9 +55,9 @@ struct NewRpgInfo
     // RPG_TRAVEL_FLIGHT
     struct TravelFlight
     {
-        ObjectGuid fromFlightMaster{};
-        uint32 fromNode{0};
-        uint32 toNode{0};
+        uint32 flightMasterEntry{0};
+        WorldPosition flightMasterPos{};
+        std::vector<uint32> path;
         bool inFlight{false};
     };
     // RPG_REST
@@ -58,10 +65,14 @@ struct NewRpgInfo
     {
         Rest() = default;
     };
+    // RPG_OUTDOOR_PVP
+    struct OutdoorPvP
+    {
+        ObjectGuid::LowType capturePointSpawnId{0};
+    };
     struct Idle
     {
     };
-    NewRpgStatus status{RPG_IDLE};
 
     uint32 startT{0};  // start timestamp of the current status
 
@@ -72,25 +83,28 @@ struct NewRpgInfo
     WorldPosition moveFarPos;
     // END MOVE_FAR
 
-    union
-    {
-        GoGrind go_grind;
-        GoCamp go_camp;
-        WanderNpc wander_npc;
-        WanderRandom WANDER_RANDOM;
-        DoQuest do_quest;
-        Rest rest;
-        DoQuest quest;
-        TravelFlight flight;
-    };
+    using RpgData = std::variant<
+        Idle,
+        GoGrind,
+        GoCamp,
+        WanderNpc,
+        WanderRandom,
+        DoQuest,
+        Rest,
+        TravelFlight,
+        OutdoorPvP
+    >;
+    RpgData data;
 
+    NewRpgStatus GetStatus();
     bool HasStatusPersisted(uint32 maxDuration) { return GetMSTimeDiffToNow(startT) > maxDuration; }
     void ChangeToGoGrind(WorldPosition pos);
     void ChangeToGoCamp(WorldPosition pos);
     void ChangeToWanderNpc();
     void ChangeToWanderRandom();
     void ChangeToDoQuest(uint32 questId, const Quest* quest);
-    void ChangeToTravelFlight(ObjectGuid fromFlightMaster, uint32 fromNode, uint32 toNode);
+    void ChangeToTravelFlight(uint32 flightMasterEntry, WorldPosition flightMasterPos, std::vector<uint32> path);
+    void ChangeToOutdoorPvp(ObjectGuid::LowType capturePointSpawnId = 0);
     void ChangeToRest();
     void ChangeToIdle();
     bool CanChangeTo(NewRpgStatus status);
@@ -126,8 +140,5 @@ struct NewRpgStatistic
         return *this;
     }
 };
-
-// not sure is it necessary but keep it for now
-#define RPG_INFO(x, y) botAI->rpgInfo.x.y
 
 #endif

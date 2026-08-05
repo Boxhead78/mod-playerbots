@@ -1,10 +1,11 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
-#ifndef _PLAYERBOT_WORLDPACKETACTIONCONTEXT_H
-#define _PLAYERBOT_WORLDPACKETACTIONCONTEXT_H
+#ifndef PLAYERBOTS_WORLDPACKETACTIONCONTEXT_H
+#define PLAYERBOTS_WORLDPACKETACTIONCONTEXT_H
 
 #include "AcceptBattlegroundInvitationAction.h"
 #include "AcceptDuelAction.h"
@@ -72,6 +73,7 @@ public:
         creators["store loot"] = &WorldPacketActionContext::store_loot;
         creators["self resurrect"] = &WorldPacketActionContext::self_resurrect;
         creators["pet"] = &WorldPacketActionContext::pet;
+        creators["equip upgrades packet action"] = &WorldPacketActionContext::equip_upgrades_packet_action;
 
         // quest
         creators["talk to quest giver"] = &WorldPacketActionContext::turn_in_quest;
@@ -142,6 +144,7 @@ private:
     static Action* tell_cannot_equip(PlayerbotAI* botAI) { return new InventoryChangeFailureAction(botAI); }
     static Action* self_resurrect(PlayerbotAI* botAI) { return new SelfResurrectAction(botAI); }
     static Action* pet(PlayerbotAI* botAI) { return new PetsAction(botAI); }
+    static Action* equip_upgrades_packet_action(PlayerbotAI* botAI) { return new EquipUpgradesPacketAction(botAI); }
 
     // quest
     static Action* quest_update_add_kill(PlayerbotAI* ai) { return new QuestUpdateAddKillAction(ai); }

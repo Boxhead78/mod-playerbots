@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "AcceptInvitationAction.h"
@@ -9,6 +10,7 @@
 #include "ObjectAccessor.h"
 #include "PlayerbotAIConfig.h"
 #include "PlayerbotSecurity.h"
+#include "PlayerbotTextMgr.h"
 #include "Playerbots.h"
 #include "WorldPacket.h"
 #include <BattlegroundMgr.h>
@@ -80,7 +82,7 @@ bool AcceptInvitationAction::Execute(Event event)
     botAI->ChangeStrategy("+follow,-lfg,-bg", BOT_STATE_NON_COMBAT);
     botAI->Reset();
 
-    botAI->TellMaster("Hello");
+    botAI->TellMaster(PlayerbotTextMgr::instance().GetBotTextOrDefault("hello", "Hello", {}));
 
     if (sPlayerbotAIConfig.summonWhenGroup && bot->GetDistance(inviter) > sPlayerbotAIConfig.sightDistance)
     {

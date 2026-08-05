@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "ImbueAction.h"
@@ -10,7 +11,7 @@
 
 ImbueWithPoisonAction::ImbueWithPoisonAction(PlayerbotAI* botAI) : Action(botAI, "apply poison") {}
 
-bool ImbueWithPoisonAction::Execute(Event event)
+bool ImbueWithPoisonAction::Execute(Event /*event*/)
 {
     if (bot->IsInCombat())
         return false;
@@ -103,7 +104,7 @@ bool ImbueWithPoisonAction::Execute(Event event)
 // Search and apply stone to weapons
 ImbueWithStoneAction::ImbueWithStoneAction(PlayerbotAI* botAI) : Action(botAI, "apply stone") {}
 
-bool ImbueWithStoneAction::Execute(Event event)
+bool ImbueWithStoneAction::Execute(Event /*event*/)
 {
     if (bot->IsInCombat())
         return false;
@@ -148,7 +149,7 @@ bool ImbueWithStoneAction::Execute(Event event)
 // Search and apply oil to weapons
 ImbueWithOilAction::ImbueWithOilAction(PlayerbotAI* botAI) : Action(botAI, "apply oil") {}
 
-bool ImbueWithOilAction::Execute(Event event)
+bool ImbueWithOilAction::Execute(Event /*event*/)
 {
     if (bot->IsInCombat())
         return false;
@@ -201,7 +202,7 @@ static const uint32 uPrioritizedHealingItemIds[19] = {
 
 TryEmergencyAction::TryEmergencyAction(PlayerbotAI* botAI) : Action(botAI, "try emergency") {}
 
-bool TryEmergencyAction::Execute(Event event)
+bool TryEmergencyAction::Execute(Event /*event*/)
 {
     // Do not use consumable if bot can heal self
     if ((botAI->IsHeal(bot)) && (bot->GetPowerPct(POWER_MANA) > 20))

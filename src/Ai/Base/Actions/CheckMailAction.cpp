@@ -1,15 +1,17 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "CheckMailAction.h"
 
 #include "Event.h"
 #include "GuildTaskMgr.h"
-#include "Playerbots.h"
+#include "PlayerbotAIConfig.h"
+#include "PlayerbotAI.h"
 
-bool CheckMailAction::Execute(Event event)
+bool CheckMailAction::Execute(Event /*event*/)
 {
     WorldPacket p;
     bot->GetSession()->HandleQueryNextMailTime(p);
@@ -28,7 +30,7 @@ bool CheckMailAction::Execute(Event event)
             continue;
 
         uint32 account = owner->GetSession()->GetAccountId();
-        if (sPlayerbotAIConfig.IsInRandomAccountList(account))
+        if (PlayerbotAIConfig::instance().IsInRandomAccountList(account))
             continue;
 
         ProcessMail(mail, owner, trans);

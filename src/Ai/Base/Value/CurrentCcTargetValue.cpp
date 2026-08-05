@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "CurrentCcTargetValue.h"
-
-#include "Playerbots.h"
+#include "PlayerbotAI.h"
 
 class FindCurrentCcTargetStrategy : public FindTargetStrategy
 {
@@ -14,7 +14,7 @@ public:
     {
     }
 
-    void CheckAttacker(Unit* attacker, ThreatMgr* threatMgr) override
+    void CheckAttacker(Unit* attacker, ThreatManager* /*threatMgr*/) override
     {
         if (botAI->HasAura(spell, attacker))
             result = attacker;

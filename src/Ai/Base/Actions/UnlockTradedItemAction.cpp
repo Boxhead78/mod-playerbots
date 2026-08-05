@@ -1,11 +1,17 @@
+/*
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
+ */
+
 #include "UnlockTradedItemAction.h"
-#include "Playerbots.h"
+#include "PlayerbotAI.h"
 #include "TradeData.h"
 #include "SpellInfo.h"
 
-#define PICK_LOCK_SPELL_ID 1804
+inline constexpr uint32_t PICK_LOCK_SPELL_ID = 1804;
 
-bool UnlockTradedItemAction::Execute(Event event)
+bool UnlockTradedItemAction::Execute(Event /*event*/)
 {
     Player* trader = bot->GetTrader();
     if (!trader)

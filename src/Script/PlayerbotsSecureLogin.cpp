@@ -1,3 +1,9 @@
+/*
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
+ */
+
 #include "ScriptMgr.h"
 #include "Opcodes.h"
 #include "Player.h"
@@ -52,15 +58,14 @@ public:
     PlayerbotsSecureLoginServerScript()
         : ServerScript("PlayerbotsSecureLoginServerScript", { SERVERHOOK_CAN_PACKET_RECEIVE }) {}
 
-    bool CanPacketReceive(WorldSession* /*session*/, WorldPacket& packet) override
+    bool CanPacketReceive(WorldSession* /*session*/, WorldPacket const& packet) override
     {
         if (packet.GetOpcode() != CMSG_PLAYER_LOGIN)
             return true;
 
-        auto const oldPos = packet.rpos();
+        WorldPacket pkt(packet);
         ObjectGuid loginGuid;
-        packet >> loginGuid;
-        packet.rpos(oldPos);
+        pkt >> loginGuid;
 
         if (!loginGuid)
             return true;

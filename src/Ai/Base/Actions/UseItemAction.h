@@ -1,10 +1,11 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
-#ifndef _PLAYERBOT_USEITEMACTION_H
-#define _PLAYERBOT_USEITEMACTION_H
+#ifndef PLAYERBOTS_USEITEMACTION_H
+#define PLAYERBOTS_USEITEMACTION_H
 
 #include "Action.h"
 
@@ -69,8 +70,8 @@ class UseHearthStone : public UseItemAction
 public:
     UseHearthStone(PlayerbotAI* botAI) : UseItemAction(botAI, "hearthstone", true) {}
 
-    bool isUseful() override;
     bool Execute(Event event) override;
+    bool isUseful() override;
 };
 
 class UseRandomRecipe : public UseItemAction
@@ -78,9 +79,9 @@ class UseRandomRecipe : public UseItemAction
 public:
     UseRandomRecipe(PlayerbotAI* botAI) : UseItemAction(botAI, "random recipe", true) {}
 
+    bool Execute(Event event) override;
     bool isUseful() override;
     bool isPossible() override;
-    bool Execute(Event event) override;
 };
 
 class UseRandomQuestItem : public UseItemAction
@@ -88,9 +89,9 @@ class UseRandomQuestItem : public UseItemAction
 public:
     UseRandomQuestItem(PlayerbotAI* botAI) : UseItemAction(botAI, "random quest item", true) {}
 
+    bool Execute(Event event) override;
     bool isUseful() override;
     bool isPossible() override;
-    bool Execute(Event event) override;
 };
 
 #endif

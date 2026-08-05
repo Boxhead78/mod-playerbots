@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "SetCraftAction.h"
@@ -8,6 +9,7 @@
 #include "ChatHelper.h"
 #include "CraftValue.h"
 #include "Event.h"
+#include "PlayerbotTextMgr.h"
 #include "Playerbots.h"
 
 std::map<uint32, SkillLineAbilityEntry const*> SetCraftAction::skillSpells;
@@ -24,7 +26,8 @@ bool SetCraftAction::Execute(Event event)
     if (link == "reset")
     {
         data.Reset();
-        botAI->TellMaster("I will not craft anything");
+        botAI->TellMaster(PlayerbotTextMgr::instance().GetBotTextOrDefault(
+            "craft_reset", "I will not craft anything", {}));
         return true;
     }
 
@@ -37,7 +40,8 @@ bool SetCraftAction::Execute(Event event)
     ItemIds itemIds = chat->parseItems(link);
     if (itemIds.empty())
     {
-        botAI->TellMaster("Usage: 'craft [itemId]' or 'craft reset'");
+        botAI->TellMaster(PlayerbotTextMgr::instance().GetBotTextOrDefault(
+            "craft_usage", "Usage: 'craft [itemId]' or 'craft reset'", {}));
         return false;
     }
 
@@ -49,9 +53,7 @@ bool SetCraftAction::Execute(Event event)
     if (skillSpells.empty())
     {
         for (SkillLineAbilityEntry const* skillLine : sSkillLineAbilityStore)
-        {
             skillSpells[skillLine->Spell] = skillLine;
-        }
     }
 
     data.required.clear();
@@ -68,7 +70,8 @@ bool SetCraftAction::Execute(Event event)
         if (!spellInfo)
             continue;
 
-        if (SkillLineAbilityEntry const* skillLine = skillSpells[spellId])
+        SkillLineAbilityEntry const* skillLine = skillSpells[spellId];
+        if (skillLine != nullptr)
         {
             for (uint8 i = 0; i < 3; ++i)
             {
@@ -78,9 +81,7 @@ bool SetCraftAction::Execute(Event event)
                     for (uint32 x = 0; x < MAX_SPELL_REAGENTS; ++x)
                     {
                         if (spellInfo->Reagent[x] <= 0)
-                        {
                             continue;
-                        }
 
                         uint32 itemid = spellInfo->Reagent[x];
                         uint32 reagentsRequired = spellInfo->ReagentCount[x];
@@ -97,7 +98,8 @@ bool SetCraftAction::Execute(Event event)
 
     if (data.required.empty())
     {
-        botAI->TellMaster("I cannot craft this");
+        botAI->TellMaster(PlayerbotTextMgr::instance().GetBotTextOrDefault(
+            "craft_cannot_craft", "I cannot craft this", {}));
         return false;
     }
 
@@ -112,7 +114,8 @@ void SetCraftAction::TellCraft()
     CraftData& data = AI_VALUE(CraftData&, "craft");
     if (data.IsEmpty())
     {
-        botAI->TellMaster("I will not craft anything");
+        botAI->TellMaster(PlayerbotTextMgr::instance().GetBotTextOrDefault(
+            "craft_reset", "I will not craft anything", {}));
         return;
     }
 
@@ -120,8 +123,7 @@ void SetCraftAction::TellCraft()
     if (!proto)
         return;
 
-    std::ostringstream out;
-    out << "I will craft " << chat->FormatItem(proto) << " using reagents: ";
+    std::ostringstream reagentsOut;
 
     bool first = true;
     for (std::map<uint32, uint32>::iterator i = data.required.begin(); i != data.required.end(); ++i)
@@ -132,24 +134,24 @@ void SetCraftAction::TellCraft()
         if (ItemTemplate const* reagent = sObjectMgr->GetItemTemplate(item))
         {
             if (first)
-            {
                 first = false;
-            }
             else
-                out << ", ";
+                reagentsOut << ", ";
 
-            out << chat->FormatItem(reagent, required);
+            reagentsOut << chat->FormatItem(reagent, required);
 
             uint32 given = data.obtained[item];
             if (given)
-            {
-                out << "|cffffff00(x" << given << " given)|r ";
-            }
+                reagentsOut << "|cffffff00(x" << given << " given)|r ";
         }
     }
 
-    out << " (craft fee: " << chat->formatMoney(GetCraftFee(data)) << ")";
-    botAI->TellMaster(out.str());
+    botAI->TellMaster(PlayerbotTextMgr::instance().GetBotTextOrDefault(
+        "craft_summary",
+        "I will craft %item using reagents: %reagents (craft fee: %money)",
+        {{"%item", chat->FormatItem(proto)},
+         {"%reagents", reagentsOut.str()},
+         {"%money", chat->formatMoney(GetCraftFee(data))}}));
 }
 
 uint32 SetCraftAction::GetCraftFee(CraftData& data)

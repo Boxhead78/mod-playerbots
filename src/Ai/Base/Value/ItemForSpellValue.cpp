@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "ItemForSpellValue.h"
@@ -46,23 +47,6 @@ Item* ItemForSpellValue::Calculate()
             if (itemForSpell && itemForSpell->IsFitToSpellRequirements(spellInfo))
                 return itemForSpell;
         }
-    }
-
-    // Workaround as some spells have no item mask (e.g. shaman weapon enhancements)
-    if (!strcmpi(spellInfo->SpellName[0], "rockbiter weapon") ||
-        !strcmpi(spellInfo->SpellName[0], "flametongue weapon") ||
-        !strcmpi(spellInfo->SpellName[0], "earthliving weapon") ||
-        !strcmpi(spellInfo->SpellName[0], "frostbrand weapon") || !strcmpi(spellInfo->SpellName[0], "windfury weapon"))
-    {
-        itemForSpell = GetItemFitsToSpellRequirements(EQUIPMENT_SLOT_MAINHAND, spellInfo);
-        if (itemForSpell && itemForSpell->GetTemplate()->Class == ITEM_CLASS_WEAPON)
-            return itemForSpell;
-
-        itemForSpell = GetItemFitsToSpellRequirements(EQUIPMENT_SLOT_OFFHAND, spellInfo);
-        if (itemForSpell && itemForSpell->GetTemplate()->Class == ITEM_CLASS_WEAPON)
-            return itemForSpell;
-
-        return nullptr;
     }
 
     if (!(spellInfo->Targets & TARGET_FLAG_ITEM))

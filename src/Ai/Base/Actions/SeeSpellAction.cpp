@@ -1,13 +1,13 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "SeeSpellAction.h"
 
 #include "Event.h"
 #include "Formations.h"
-#include "PathGenerator.h"
 #include "Playerbots.h"
 #include "RTSCValues.h"
 #include "RtscAction.h"
@@ -16,7 +16,7 @@
 
 std::set<uint32> const FISHING_SPELLS = {7620, 7731, 7732, 18248, 33095, 51294};
 
-Creature* SeeSpellAction::CreateWps(Player* wpOwner, float x, float y, float z, float o, uint32 entry, Creature* lastWp,
+Creature* SeeSpellAction::CreateWps(Player* wpOwner, float x, float y, float z, float o, uint32 entry, Creature* /*lastWp*/,
                                     bool important)
 {
     float dist = wpOwner->GetDistance(x, y, z);
@@ -134,8 +134,8 @@ bool SeeSpellAction::Execute(Event event)
         SET_AI_VALUE2(WorldPosition, "RTSC saved location", locationName, spellPosition);
 
         Creature* wpCreature =
-            bot->SummonCreature(15631, spellPosition.getX(), spellPosition.getY(), spellPosition.getZ(),
-                                spellPosition.getO(), TEMPSUMMON_TIMED_DESPAWN, 2000.0f);
+            bot->SummonCreature(15631, spellPosition.GetPositionX(), spellPosition.GetPositionY(), spellPosition.GetPositionZ(),
+                                spellPosition.GetOrientation(), TEMPSUMMON_TIMED_DESPAWN, 2000.0f);
         wpCreature->SetObjectScale(0.5f);
         RESET_AI_VALUE(std::string, "RTSC next spell action");
 
@@ -167,14 +167,14 @@ bool SeeSpellAction::MoveToSpell(WorldPosition& spellPosition, bool inFormation)
         PositionMap& posMap = AI_VALUE(PositionMap&, "position");
         PositionInfo stayPosition = posMap["stay"];
 
-        stayPosition.Set(spellPosition.getX(), spellPosition.getY(), spellPosition.getZ(), spellPosition.getMapId());
+        stayPosition.Set(spellPosition.GetPositionX(), spellPosition.GetPositionY(), spellPosition.GetPositionZ(), spellPosition.GetMapId());
         posMap["stay"] = stayPosition;
     }
 
-    if (bot->IsWithinLOS(spellPosition.getX(), spellPosition.getY(), spellPosition.getZ()))
-        return MoveNear(spellPosition.getMapId(), spellPosition.getX(), spellPosition.getY(), spellPosition.getZ(), 0);
+    if (bot->IsWithinLOS(spellPosition.GetPositionX(), spellPosition.GetPositionY(), spellPosition.GetPositionZ()))
+        return MoveNear(spellPosition.GetMapId(), spellPosition.GetPositionX(), spellPosition.GetPositionY(), spellPosition.GetPositionZ(), 0);
 
-    return MoveTo(spellPosition.getMapId(), spellPosition.getX(), spellPosition.getY(), spellPosition.getZ(), false,
+    return MoveTo(spellPosition.GetMapId(), spellPosition.GetPositionX(), spellPosition.GetPositionY(), spellPosition.GetPositionZ(), false,
                   false);
 }
 

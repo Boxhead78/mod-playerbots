@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "GenericActions.h"
@@ -8,11 +9,10 @@
 #include "Player.h"
 #include "Pet.h"
 #include "PlayerbotAIConfig.h"
+#include "PlayerbotTextMgr.h"
 #include "CreatureAI.h"
 #include "Playerbots.h"
 #include "CharmInfo.h"
-#include "SharedDefines.h"
-#include "ObjectGuid.h"
 #include "SpellMgr.h"
 #include "SpellInfo.h"
 #include <vector>
@@ -51,10 +51,13 @@ bool MeleeAction::isUseful()
     if (botAI->IsInVehicle() && !botAI->IsInVehicle(false, false, true))
         return false;
 
-    return true;
+    // Do not start autoattack while prowled — let opener spells break stealth intentionally.
+    // Future rogue stealth implementation should use this instead:
+    // return !(botAI->HasAura("stealth", bot) || botAI->HasAura("prowl", bot));
+    return !botAI->HasAura("prowl", bot);
 }
 
-bool TogglePetSpellAutoCastAction::Execute(Event event)
+bool TogglePetSpellAutoCastAction::Execute(Event /*event*/)
 {
     Pet* pet = bot->GetPet();
     if (!pet)
@@ -84,7 +87,7 @@ bool TogglePetSpellAutoCastAction::Execute(Event event)
 
         uint32 spellId = itr->first;
         const SpellInfo* spellInfo = sSpellMgr->GetSpellInfo(spellId);
-        if (!spellInfo->IsAutocastable())
+        if (!spellInfo || !spellInfo->IsAutocastable())
             continue;
 
         bool shouldApply = true;
@@ -119,7 +122,7 @@ bool TogglePetSpellAutoCastAction::Execute(Event event)
     return toggled;
 }
 
-bool PetAttackAction::Execute(Event event)
+bool PetAttackAction::Execute(Event /*event*/)
 {
     Guardian* pet = bot->GetGuardianPet();
     if (!pet)
@@ -180,7 +183,8 @@ bool SetPetStanceAction::Execute(Event /*event*/)
     // If there are no controlled pets or guardians, notify the player and exit
     if (targets.empty())
     {
-        botAI->TellError("You have no pet or guardian pet.");
+        botAI->TellError(PlayerbotTextMgr::instance().GetBotTextOrDefault(
+            "pet_no_pet_error", "You have no pet or guardian pet.", {}));
         return false;
     }
 

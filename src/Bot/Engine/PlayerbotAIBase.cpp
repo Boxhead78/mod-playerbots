@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "PlayerbotAIBase.h"
@@ -25,7 +26,7 @@ void PlayerbotAIBase::UpdateAI(uint32 elapsed, bool minimal)
         return;
 
     UpdateAIInternal(elapsed, minimal);
-    YieldThread();
+    YieldThread(nullptr);
 }
 
 void PlayerbotAIBase::SetNextCheckDelay(uint32 const delay)
@@ -49,10 +50,14 @@ void PlayerbotAIBase::IncreaseNextCheckDelay(uint32 delay)
 
 bool PlayerbotAIBase::CanUpdateAI() { return nextAICheckDelay == 0; }
 
-void PlayerbotAIBase::YieldThread(uint32 delay)
+void PlayerbotAIBase::YieldThread(Player* bot, uint32 delay)
 {
     if (nextAICheckDelay < delay)
-        nextAICheckDelay = delay;
+    {
+        // Adding a deterministic per-bot slight offset (0–200 ms) to stagger updates and prevent cpu spikes.
+        uint32 offset = bot ? (bot->GetGUID().GetCounter() % 201) : 0;
+        nextAICheckDelay = delay + offset;
+    }
 }
 
 bool PlayerbotAIBase::IsActive() { return nextAICheckDelay < sPlayerbotAIConfig.maxWaitForMove; }

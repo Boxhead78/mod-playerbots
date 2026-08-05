@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "TravelAction.h"
@@ -10,7 +11,7 @@
 #include "GridNotifiersImpl.h"
 #include "Playerbots.h"
 
-bool TravelAction::Execute(Event event)
+bool TravelAction::Execute(Event /*event*/)
 {
     TravelTarget* target = AI_VALUE(TravelTarget*, "travel target");
 
@@ -37,7 +38,7 @@ bool TravelAction::Execute(Event event)
         if (!newTarget->IsAlive())
             continue;
 
-        if (newTarget->GetEntry() == target->getDestination()->getEntry())
+        if (newTarget->GetEntry() == uint32(target->getDestination()->getEntry()))
             continue;
 
         if (newTarget->IsInCombat())
@@ -60,12 +61,14 @@ bool TravelAction::isUseful()
            (!AI_VALUE(GuidPosition, "rpg target") || !AI_VALUE(ObjectGuid, "pull target"));
 }
 
-bool MoveToDarkPortalAction::Execute(Event event)
+bool MoveToDarkPortalAction::Execute(Event /*event*/)
 {
     if (bot->GetGroup())
+    {
         if (bot->GetGroup()->GetLeaderGUID() != bot->GetGUID() &&
             !GET_PLAYERBOT_AI(GET_PLAYERBOT_AI(bot)->GetGroupLeader()))
             return false;
+    }
 
     if (bot->GetLevel() > 57)
     {
@@ -111,7 +114,7 @@ bool MoveToDarkPortalAction::Execute(Event event)
 
 bool MoveToDarkPortalAction::isUseful() { return bot->GetLevel() > 54; }
 
-bool DarkPortalAzerothAction::Execute(Event event)
+bool DarkPortalAzerothAction::Execute(Event /*event*/)
 {
     if (bot->GetLevel() > 57)
     {
@@ -126,14 +129,12 @@ bool DarkPortalAzerothAction::Execute(Event event)
 
 bool DarkPortalAzerothAction::isUseful() { return bot->GetLevel() > 57; }
 
-bool MoveFromDarkPortalAction::Execute(Event event)
+bool MoveFromDarkPortalAction::Execute(Event /*event*/)
 {
     RESET_AI_VALUE(GuidPosition, "rpg target");
 
     if (bot->GetTeamId() == TEAM_ALLIANCE)
         return MoveTo(530, -319.261f, 1027.213, 54.172638f, false, true);
-    else
-        return MoveTo(530, -180.444f, 1027.947, 54.181538f, false, true);
 
-    return false;
+    return MoveTo(530, -180.444f, 1027.947, 54.181538f, false, true);
 }

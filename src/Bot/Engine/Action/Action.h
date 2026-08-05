@@ -1,12 +1,13 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
-#pragma once
+#ifndef PLAYERBOTS_ACTION_H
+#define PLAYERBOTS_ACTION_H
 
 #include "AiObject.h"
-#include "Common.h"
 #include "Event.h"
 #include "Value.h"
 
@@ -17,8 +18,7 @@ class NextAction
 {
 public:
     NextAction(std::string const name, float relevance = 0.0f)
-        : relevance(relevance), name(name) {}                                  // name after relevance - whipowill
-    NextAction(NextAction const& o) : relevance(o.relevance), name(o.name) {}  // name after relevance - whipowill
+        : relevance(relevance), name(name) {}  // name after relevance - whipowill
 
     std::string const getName() { return name; }
     float getRelevance() { return relevance; }
@@ -60,8 +60,27 @@ public:
     virtual ~Action(void) {}
 
     virtual bool Execute([[maybe_unused]] Event event) { return true; }
-    virtual bool isPossible() { return true; }
+
+    /**
+     * @brief First validation check - determines if this action is contextually useful
+     *
+     * Performs lightweight checks to evaluate whether the action makes sense
+     * in the current situation. Called before isPossible() during action selection.
+     *
+     * @return true if the action is useful, false otherwise
+     */
     virtual bool isUseful() { return true; }
+
+    /**
+     * @brief Second validation check - determines if this action can be executed
+     *
+     * Performs hard pre-execution validation against the event and game state.
+     * Called after isUseful() passes, before Execute().
+     *
+     * @return true if the action is possible, false otherwise
+     */
+    virtual bool isPossible() { return true; }
+
     virtual std::vector<NextAction> getPrerequisites() { return {}; }
     virtual std::vector<NextAction> getAlternatives() { return {}; }
     virtual std::vector<NextAction> getContinuers() { return {}; }
@@ -145,3 +164,5 @@ private:
     Event event;
     uint32_t created;
 };
+
+#endif

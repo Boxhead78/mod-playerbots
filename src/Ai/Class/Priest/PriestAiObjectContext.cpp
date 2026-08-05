@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "PriestAiObjectContext.h"
@@ -92,8 +93,6 @@ public:
         creators["shadow protection"] = &PriestTriggerFactoryInternal::shadow_protection;
         creators["shadow protection on party"] = &PriestTriggerFactoryInternal::shadow_protection_on_party;
         creators["shackle undead"] = &PriestTriggerFactoryInternal::shackle_undead;
-        creators["prayer of fortitude on party"] = &PriestTriggerFactoryInternal::prayer_of_fortitude_on_party;
-        creators["prayer of spirit on party"] = &PriestTriggerFactoryInternal::prayer_of_spirit_on_party;
         creators["holy fire"] = &PriestTriggerFactoryInternal::holy_fire;
         creators["touch of weakness"] = &PriestTriggerFactoryInternal::touch_of_weakness;
         creators["hex of weakness"] = &PriestTriggerFactoryInternal::hex_of_weakness;
@@ -114,10 +113,10 @@ private:
     static Trigger* vampiric_touch(PlayerbotAI* botAI) { return new VampiricTouchTrigger(botAI); }
     static Trigger* vampiric_touch_on_attacker(PlayerbotAI* botAI) { return new VampiricTouchOnAttackerTrigger(botAI); }
     static Trigger* devouring_plague(PlayerbotAI* botAI) { return new DevouringPlagueTrigger(botAI); }
-    static Trigger* shadow_word_pain(PlayerbotAI* botAI) { return new PowerWordPainTrigger(botAI); }
+    static Trigger* shadow_word_pain(PlayerbotAI* botAI) { return new ShadowWordPainTrigger(botAI); }
     static Trigger* shadow_word_pain_on_attacker(PlayerbotAI* botAI)
     {
-        return new PowerWordPainOnAttackerTrigger(botAI);
+        return new ShadowWordPainOnAttackerTrigger(botAI);
     }
     static Trigger* dispel_magic(PlayerbotAI* botAI) { return new DispelMagicTrigger(botAI); }
     static Trigger* dispel_magic_party_member(PlayerbotAI* botAI) { return new DispelMagicPartyMemberTrigger(botAI); }
@@ -136,8 +135,6 @@ private:
     static Trigger* shadow_protection_on_party(PlayerbotAI* botAI) { return new ShadowProtectionOnPartyTrigger(botAI); }
     static Trigger* shadow_protection(PlayerbotAI* botAI) { return new ShadowProtectionTrigger(botAI); }
     static Trigger* shackle_undead(PlayerbotAI* botAI) { return new ShackleUndeadTrigger(botAI); }
-    static Trigger* prayer_of_fortitude_on_party(PlayerbotAI* botAI) { return new PrayerOfFortitudeTrigger(botAI); }
-    static Trigger* prayer_of_spirit_on_party(PlayerbotAI* botAI) { return new PrayerOfSpiritTrigger(botAI); }
     static Trigger* feedback(PlayerbotAI* botAI) { return new FeedbackTrigger(botAI); }
     static Trigger* fear_ward(PlayerbotAI* botAI) { return new FearWardTrigger(botAI); }
     static Trigger* shadowguard(PlayerbotAI* botAI) { return new ShadowguardTrigger(botAI); }
@@ -207,8 +204,6 @@ public:
         creators["shadow protection"] = &PriestAiObjectContextInternal::shadow_protection;
         creators["shadow protection on party"] = &PriestAiObjectContextInternal::shadow_protection_on_party;
         creators["shackle undead"] = &PriestAiObjectContextInternal::shackle_undead;
-        creators["prayer of fortitude on party"] = &PriestAiObjectContextInternal::prayer_of_fortitude_on_party;
-        creators["prayer of spirit on party"] = &PriestAiObjectContextInternal::prayer_of_spirit_on_party;
         creators["power infusion on party"] = &PriestAiObjectContextInternal::power_infusion_on_party;
         creators["silence"] = &PriestAiObjectContextInternal::silence;
         creators["silence on enemy healer"] = &PriestAiObjectContextInternal::silence_on_enemy_healer;
@@ -261,10 +256,10 @@ private:
     static Action* psychic_scream(PlayerbotAI* botAI) { return new CastPsychicScreamAction(botAI); }
     static Action* circle_of_healing(PlayerbotAI* botAI) { return new CastCircleOfHealingAction(botAI); }
     static Action* resurrection(PlayerbotAI* botAI) { return new CastResurrectionAction(botAI); }
-    static Action* shadow_word_pain(PlayerbotAI* botAI) { return new CastPowerWordPainAction(botAI); }
+    static Action* shadow_word_pain(PlayerbotAI* botAI) { return new CastShadowWordPainAction(botAI); }
     static Action* shadow_word_pain_on_attacker(PlayerbotAI* botAI)
     {
-        return new CastPowerWordPainOnAttackerAction(botAI);
+        return new CastShadowWordPainOnAttackerAction(botAI);
     }
     static Action* devouring_plague(PlayerbotAI* botAI) { return new CastDevouringPlagueAction(botAI); }
     static Action* mind_flay(PlayerbotAI* botAI) { return new CastMindFlayAction(botAI); }
@@ -311,11 +306,6 @@ private:
     static Action* fade(PlayerbotAI* botAI) { return new CastFadeAction(botAI); }
     static Action* inner_fire(PlayerbotAI* botAI) { return new CastInnerFireAction(botAI); }
     static Action* shackle_undead(PlayerbotAI* botAI) { return new CastShackleUndeadAction(botAI); }
-    static Action* prayer_of_spirit_on_party(PlayerbotAI* botAI) { return new CastPrayerOfSpiritOnPartyAction(botAI); }
-    static Action* prayer_of_fortitude_on_party(PlayerbotAI* botAI)
-    {
-        return new CastPrayerOfFortitudeOnPartyAction(botAI);
-    }
     static Action* feedback(PlayerbotAI* botAI) { return new CastFeedbackAction(botAI); }
     static Action* elunes_grace(PlayerbotAI* botAI) { return new CastElunesGraceAction(botAI); }
     static Action* starshards(PlayerbotAI* botAI) { return new CastStarshardsAction(botAI); }

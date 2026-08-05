@@ -1,49 +1,41 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
-#ifndef _PLAYERBOT_HUNTERBUFFSTRATEGIES_H
-#define _PLAYERBOT_HUNTERBUFFSTRATEGIES_H
+#ifndef PLAYERBOTS_HUNTERBUFFSTRATEGIES_H
+#define PLAYERBOTS_HUNTERBUFFSTRATEGIES_H
 
-#include "NonCombatStrategy.h"
+#include "Strategy.h"
 
 class PlayerbotAI;
 
-class HunterBuffSpeedStrategy : public NonCombatStrategy
+class HunterBuffSpeedStrategy : public Strategy
 {
 public:
-    HunterBuffSpeedStrategy(PlayerbotAI* botAI) : NonCombatStrategy(botAI) {}
+    HunterBuffSpeedStrategy(PlayerbotAI* botAI) : Strategy(botAI) {}
 
+    void InitTriggers(std::vector<TriggerNode*>& triggers) override;
     std::string const getName() override { return "bspeed"; }
-    void InitTriggers(std::vector<TriggerNode*>& triggers) override;
 };
 
-class HunterBuffManaStrategy : public NonCombatStrategy
-{
-public:
-    HunterBuffManaStrategy(PlayerbotAI* botAI) : NonCombatStrategy(botAI) {}
-
-    std::string const getName() override { return "bmana"; }
-    void InitTriggers(std::vector<TriggerNode*>& triggers) override;
-};
-
-class HunterBuffDpsStrategy : public NonCombatStrategy
+class HunterBuffDpsStrategy : public Strategy
 {
 public:
     HunterBuffDpsStrategy(PlayerbotAI* botAI);
 
-    std::string const getName() override { return "bdps"; }
     void InitTriggers(std::vector<TriggerNode*>& triggers) override;
+    std::string const getName() override { return "bdps"; }
 };
 
-class HunterNatureResistanceStrategy : public NonCombatStrategy
+class HunterNatureResistanceStrategy : public Strategy
 {
 public:
-    HunterNatureResistanceStrategy(PlayerbotAI* botAI) : NonCombatStrategy(botAI) {}
+    HunterNatureResistanceStrategy(PlayerbotAI* botAI) : Strategy(botAI) {}
 
-    std::string const getName() override { return "rnature"; }
     void InitTriggers(std::vector<TriggerNode*>& triggers) override;
+    std::string const getName() override { return "rnature"; }
 };
 
 #endif

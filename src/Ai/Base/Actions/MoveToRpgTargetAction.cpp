@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "MoveToRpgTargetAction.h"
@@ -11,20 +12,16 @@
 #include "LastMovementValue.h"
 #include "Playerbots.h"
 
-bool MoveToRpgTargetAction::Execute(Event event)
+bool MoveToRpgTargetAction::Execute(Event /*event*/)
 {
     GuidPosition guidP = AI_VALUE(GuidPosition, "rpg target");
     Unit* unit = botAI->GetUnit(guidP);
     if (unit && !unit->IsInWorld())
-    {
         return false;
-    }
+
     GameObject* go = botAI->GetGameObject(guidP);
     if (go && !go->IsInWorld())
-    {
         return false;
-    }
-    Player* player = guidP.GetPlayer();
 
     WorldObject* wo = nullptr;
     if (unit)

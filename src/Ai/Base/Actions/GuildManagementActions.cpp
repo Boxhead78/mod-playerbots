@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "GuildManagementActions.h"
@@ -128,7 +129,7 @@ bool GuildRemoveAction::PlayerIsValid(Player* member)
     return member->GetGuildId() == bot->GetGuildId() && GetRankId(bot) < GetRankId(member);
 };
 
-bool GuildManageNearbyAction::Execute(Event event)
+bool GuildManageNearbyAction::Execute(Event /*event*/)
 {
     uint32 found = 0;
 
@@ -149,7 +150,6 @@ bool GuildManageNearbyAction::Execute(Event event)
         // Promote or demote nearby members based on chance.
         if (player->GetGuildId() && player->GetGuildId() == bot->GetGuildId())
         {
-            Guild::Member* member = guild->GetMember(player->GetGUID());
             uint32 dCount = AI_VALUE(uint32, "death count");
 
             if (!urand(0, 30) && dCount < 2 && guild->GetRankRights(botMember->GetRankId()) & GR_RIGHT_PROMOTE)

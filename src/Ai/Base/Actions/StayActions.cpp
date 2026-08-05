@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "StayActions.h"
@@ -39,7 +40,7 @@ bool StayActionBase::Stay()
     return true;
 }
 
-bool StayAction::Execute(Event event) { return Stay(); }
+bool StayAction::Execute(Event /*event*/) { return Stay(); }
 
 bool StayAction::isUseful()
 {
@@ -47,11 +48,8 @@ bool StayAction::isUseful()
     PositionInfo stayPosition = AI_VALUE(PositionMap&, "position")["stay"];
     if (stayPosition.isSet())
     {
-        const float distance = bot->GetDistance(stayPosition.x, stayPosition.y, stayPosition.z);
         if (sPlayerbotAIConfig.followDistance)
-        {
             return false;
-        }
     }
 
     // move from group takes priority over stay as it's added and removed automatically
@@ -64,7 +62,7 @@ bool StayAction::isUseful()
     return AI_VALUE2(bool, "moving", "self target");
 }
 
-bool SitAction::Execute(Event event)
+bool SitAction::Execute(Event /*event*/)
 {
     if (bot->isMoving())
         return false;

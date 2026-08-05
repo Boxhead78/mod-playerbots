@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "RepairAllAction.h"
@@ -9,7 +10,7 @@
 #include "Event.h"
 #include "Playerbots.h"
 
-bool RepairAllAction::Execute(Event event)
+bool RepairAllAction::Execute(Event /*event*/)
 {
     GuidVector npcs = AI_VALUE(GuidVector, "nearest npcs");
     for (ObjectGuid const guid : npcs)

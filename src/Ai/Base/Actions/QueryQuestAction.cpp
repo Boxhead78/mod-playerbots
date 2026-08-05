@@ -1,13 +1,14 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "QueryQuestAction.h"
 
 #include "ChatHelper.h"
 #include "Event.h"
-#include "Playerbots.h"
+#include "PlayerbotAI.h"
 
 void QueryQuestAction::TellObjective(std::string const name, uint32 available, uint32 required)
 {
@@ -16,7 +17,6 @@ void QueryQuestAction::TellObjective(std::string const name, uint32 available, u
 
 bool QueryQuestAction::Execute(Event event)
 {
-    Player* requester = event.getOwner() ? event.getOwner() : GetMaster();
     Player* bot = botAI->GetBot();
     WorldPosition botPos(bot);
     WorldPosition* ptr_botpos = &botPos;

@@ -1,10 +1,11 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
-#ifndef PLAYERBOT_RELEASESPIRITACTION_H
-#define PLAYERBOT_RELEASESPIRITACTION_H
+#ifndef PLAYERBOTS_RELEASESPIRITACTION_H
+#define PLAYERBOTS_RELEASESPIRITACTION_H
 
 #include "Action.h"
 #include "ReviveFromCorpseAction.h"
@@ -18,7 +19,7 @@ public:
         : Action(botAI, name) {}
 
     bool Execute(Event event) override;
-    void LogRelease(const std::string& releaseType, bool isAutoRelease = false) const;
+    void LogRelease(const std::string& releaseType) const;
 
 protected:
     void IncrementDeathCount() const;

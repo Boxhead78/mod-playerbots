@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "ChangeTalentsAction.h"
@@ -10,9 +11,9 @@
 #include "Event.h"
 #include "PlayerbotAIConfig.h"
 #include "PlayerbotFactory.h"
-#include "Playerbots.h"
 #include "AiObjectContext.h"
 #include "Log.h"
+#include "RandomPlayerbotMgr.h"
 
 bool ChangeTalentsAction::Execute(Event event)
 {
@@ -184,7 +185,7 @@ std::string ChangeTalentsAction::SpecApply(std::string param)
 //     //     }
 //     // }
 
-//     return std::move(ret);
+//     return ret;
 // }
 
 // std::vector<TalentPath*> ChangeTalentsAction::getPremadePaths(TalentSpec* oldSpec)
@@ -201,7 +202,7 @@ std::string ChangeTalentsAction::SpecApply(std::string param)
 //     //     }
 //     // }
 
-//     return std::move(ret);
+//     return ret;
 // }
 
 // TalentPath* ChangeTalentsAction::getPremadePath(uint32 id)
@@ -368,11 +369,11 @@ std::string ChangeTalentsAction::SpecApply(std::string param)
 //     return nullptr;
 // }
 
-bool AutoSetTalentsAction::Execute(Event event)
+bool AutoSetTalentsAction::Execute(Event /*event*/)
 {
     std::ostringstream out;
 
-    if (!sPlayerbotAIConfig.autoPickTalents || !sRandomPlayerbotMgr.IsRandomBot(bot))
+    if (!PlayerbotAIConfig::instance().autoPickTalents || !RandomPlayerbotMgr::instance().IsRandomBot(bot))
         return false;
 
     if (bot->GetFreeTalentPoints() <= 0)

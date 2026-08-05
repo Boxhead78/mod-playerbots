@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "RogueAiObjectContext.h"
@@ -143,6 +144,7 @@ public:
         creators["use instant poison on off hand"] = &RogueAiObjectContextInternal::use_instant_poison_off_hand;
         creators["fan of knives"] = &RogueAiObjectContextInternal::fan_of_knives;
         creators["killing spree"] = &RogueAiObjectContextInternal::killing_spree;
+        creators["cold blood"] = &RogueAiObjectContextInternal::cold_blood;
     }
 
 private:
@@ -184,6 +186,7 @@ private:
     static Action* use_instant_poison_off_hand(PlayerbotAI* ai) { return new UseInstantPoisonOffHandAction(ai); }
     static Action* fan_of_knives(PlayerbotAI* ai) { return new FanOfKnivesAction(ai); }
     static Action* killing_spree(PlayerbotAI* ai) { return new CastKillingSpreeAction(ai); }
+    static Action* cold_blood(PlayerbotAI* ai) { return new CastColdBloodAction(ai); }
 };
 
 SharedNamedObjectContextList<Strategy> RogueAiObjectContext::sharedStrategyContexts;

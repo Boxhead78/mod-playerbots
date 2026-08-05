@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "PositionAction.h"
@@ -102,7 +103,7 @@ bool PositionAction::Execute(Event event)
     return false;
 }
 
-bool MoveToPositionAction::Execute(Event event)
+bool MoveToPositionAction::Execute(Event /*event*/)
 {
     PositionInfo pos = context->GetValue<PositionMap&>("position")->Get()[qualifier];
     if (!pos.isSet())
@@ -123,7 +124,7 @@ bool MoveToPositionAction::isUseful()
     return pos.isSet() && distance > sPlayerbotAIConfig.followDistance && distance < sPlayerbotAIConfig.reactDistance;
 }
 
-bool SetReturnPositionAction::Execute(Event event)
+bool SetReturnPositionAction::Execute(Event /*event*/)
 {
     PositionMap& posMap = context->GetValue<PositionMap&>("position")->Get();
     PositionInfo returnPos = posMap["return"];

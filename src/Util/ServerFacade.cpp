@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "ServerFacade.h"
@@ -39,7 +40,7 @@ bool ServerFacade::IsDistanceGreaterOrEqualThan(float dist1, float dist2) { retu
 
 bool ServerFacade::IsDistanceLessOrEqualThan(float dist1, float dist2) { return !IsDistanceGreaterThan(dist1, dist2); }
 
-void ServerFacade::SetFacingTo(Player* bot, WorldObject* wo, bool force)
+void ServerFacade::SetFacingTo(Player* bot, WorldObject* wo, bool /*force*/)
 {
     if (!bot)
         return;
@@ -53,8 +54,9 @@ void ServerFacade::SetFacingTo(Player* bot, WorldObject* wo, bool force)
     bot->SetOrientation(angle);
 
     if (!bot->IsRooted())
-        bot->SendMovementFlagUpdate();
-    // }
+        // enforce (bool self) true otherwhise when using real-client with self-bot wont
+        // recieve update; e.g. will not face the target when using (mostly ranged) attack
+        bot->SendMovementFlagUpdate(true);
 }
 
 Unit* ServerFacade::GetChaseTarget(Unit* target)

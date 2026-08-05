@@ -1,5 +1,11 @@
-#ifndef _PLAYERBOT_NEWRPGACTION_H
-#define _PLAYERBOT_NEWRPGACTION_H
+/*
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
+ */
+
+#ifndef PLAYERBOTS_NEWRPGACTION_H
+#define PLAYERBOTS_NEWRPGACTION_H
 
 #include "Duration.h"
 #include "MovementActions.h"
@@ -47,10 +53,11 @@ public:
 
 protected:
     // static NewRpgStatusTransitionProb transitionMat;
-    const int32 statusWanderNpcDuration = 5 * 60 * 1000;
-    const int32 statusWanderRandomDuration = 5 * 60 * 1000;
-    const int32 statusRestDuration = 30 * 1000;
-    const int32 statusDoQuestDuration = 30 * 60 * 1000;
+    const int32 statusWanderNpcDuration = 5 * MINUTE  * IN_MILLISECONDS ;
+    const int32 statusWanderRandomDuration = 5 * MINUTE  * IN_MILLISECONDS ;
+    const int32 statusRestDuration = 30 * IN_MILLISECONDS ;
+    const int32 statusDoQuestDuration = 30 * MINUTE  * IN_MILLISECONDS ;
+    const int32 statusOutDoorPvPDuration = HOUR * IN_MILLISECONDS ;
 };
 
 class NewRpgGoGrindAction : public NewRpgBaseAction
@@ -90,8 +97,8 @@ public:
     bool Execute(Event event) override;
 
 protected:
-    bool DoIncompleteQuest();
-    bool DoCompletedQuest();
+    bool DoIncompleteQuest(NewRpgInfo::DoQuest& data);
+    bool DoCompletedQuest(NewRpgInfo::DoQuest& data);
 
     const uint32 poiStayTime = 5 * 60 * 1000;
 };

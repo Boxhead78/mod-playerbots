@@ -1,13 +1,15 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
-#ifndef _PLAYERBOT_PLAYERBOTAIBASE_H
-#define _PLAYERBOT_PLAYERBOTAIBASE_H
+#ifndef PLAYERBOTS_PLAYERBOTAIBASE_H
+#define PLAYERBOTS_PLAYERBOTAIBASE_H
 
 #include "Define.h"
 #include "PlayerbotAIConfig.h"
+#include "Player.h"
 
 class PlayerbotAIBase
 {
@@ -17,7 +19,7 @@ public:
     bool CanUpdateAI();
     void SetNextCheckDelay(uint32 const delay);
     void IncreaseNextCheckDelay(uint32 delay);
-    void YieldThread(uint32 delay = sPlayerbotAIConfig.reactDelay);
+    void YieldThread(Player* bot, uint32 delay = sPlayerbotAIConfig.reactDelay);
     virtual void UpdateAI(uint32 elapsed, bool minimal = false);
     virtual void UpdateAIInternal(uint32 elapsed, bool minimal = false) = 0;
     bool IsActive();

@@ -1,14 +1,19 @@
+/*
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
+ */
+
 #include "UnlockItemAction.h"
 #include "PlayerbotAI.h"
 #include "ItemTemplate.h"
-#include "WorldPacket.h"
 #include "Player.h"
 #include "ObjectMgr.h"
 #include "SpellInfo.h"
 
-#define PICK_LOCK_SPELL_ID 1804
+inline constexpr uint32_t PICK_LOCK_SPELL_ID = 1804;
 
-bool UnlockItemAction::Execute(Event event)
+bool UnlockItemAction::Execute(Event /*event*/)
 {
     bool foundLockedItem = false;
 
@@ -32,7 +37,5 @@ void UnlockItemAction::UnlockItem(Item* item)
         botAI->TellMaster(out.str());
     }
     else
-    {
         botAI->TellError("Failed to cast Pick Lock.");
-    }
 }

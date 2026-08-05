@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "Engine.h"
@@ -118,10 +119,12 @@ void Engine::Init()
 {
     Reset();
 
+    hasTargetExclusions = false;
     for (std::map<std::string, Strategy*>::iterator i = strategies.begin(); i != strategies.end(); i++)
     {
         Strategy* strategy = i->second;
         strategyTypeMask |= strategy->GetType();
+        hasTargetExclusions |= strategy->HasTargetExclusions();
         strategy->InitMultipliers(multipliers);
         strategy->InitTriggers(triggers);
         for (auto &iter : strategy->actionNodeFactories.creators)
@@ -138,7 +141,7 @@ void Engine::Init()
     }
 }
 
-bool Engine::DoNextAction(Unit* unit, uint32 depth, bool minimal)
+bool Engine::DoNextAction(Unit* /*unit*/, uint32 /*depth*/, bool minimal)
 {
     LogAction("--- AI Tick ---");
 
@@ -323,16 +326,16 @@ ActionResult Engine::ExecuteAction(std::string const name, Event event, std::str
             q->Qualify(qualifier);
     }
 
-    if (!action->isPossible())
-    {
-        delete actionNode;
-        return ACTION_RESULT_IMPOSSIBLE;
-    }
-
     if (!action->isUseful())
     {
         delete actionNode;
         return ACTION_RESULT_USELESS;
+    }
+
+    if (!action->isPossible())
+    {
+        delete actionNode;
+        return ACTION_RESULT_IMPOSSIBLE;
     }
 
     action->MakeVerbose();
@@ -427,6 +430,12 @@ void Engine::toggleStrategy(std::string const name)
 }
 
 bool Engine::HasStrategy(std::string const name) { return strategies.find(name) != strategies.end(); }
+
+Strategy* Engine::GetStrategy(std::string const name)
+{
+    std::map<std::string, Strategy*>::iterator i = strategies.find(name);
+    return i != strategies.end() ? i->second : nullptr;
+}
 
 void Engine::ProcessTriggers(bool minimal)
 {

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "GrindTargetValue.h"
@@ -30,7 +31,6 @@ Unit* GrindTargetValue::Calculate()
 
 Unit* GrindTargetValue::FindTargetForGrinding(uint32 assistCount)
 {
-    uint32 memberCount = 1;
     Group* group = bot->GetGroup();
     Player* master = GetMaster();
 
@@ -65,7 +65,6 @@ Unit* GrindTargetValue::FindTargetForGrinding(uint32 assistCount)
         if (!unit->IsInWorld() || unit->IsDuringRemoveFromWorld())
             continue;
 
-        auto& rep = bot->ToPlayer()->GetReputationMgr();
         if (unit->ToCreature() && !unit->ToCreature()->GetCreatureTemplate()->lootid &&
             bot->GetReactionTo(unit) >= REP_NEUTRAL)
             continue;
@@ -107,7 +106,7 @@ Unit* GrindTargetValue::FindTargetForGrinding(uint32 assistCount)
             continue;
         }
 
-        bool inactiveGrindStatus = botAI->rpgInfo.status != RPG_WANDER_RANDOM && botAI->rpgInfo.status != RPG_IDLE;
+        bool inactiveGrindStatus = botAI->rpgInfo.GetStatus() != RPG_WANDER_RANDOM && botAI->rpgInfo.GetStatus() != RPG_IDLE;
 
         float aggroRange = 30.0f;
         if (unit->ToCreature())
@@ -184,7 +183,7 @@ bool GrindTargetValue::needForQuest(Unit* target)
                     int required = questTemplate->RequiredNpcOrGoCount[j];
                     int available = questStatus->CreatureOrGOCount[j];
 
-                    if (required && available < required && target->GetEntry() == entry)
+                    if (required && available < required && target->GetEntry() == uint32(entry))
                         return true;
                 }
             }

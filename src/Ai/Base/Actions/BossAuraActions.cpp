@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include <HunterBuffStrategies.h>
@@ -18,7 +19,7 @@ bool BossFireResistanceAction::isUseful()
     return bossFireResistanceTrigger.IsActive();
 }
 
-bool BossFireResistanceAction::Execute(Event event)
+bool BossFireResistanceAction::Execute(Event /*event*/)
 {
     PaladinFireResistanceStrategy paladinFireResistanceStrategy(botAI);
     botAI->ChangeStrategy(ADD_STRATEGY_CHAR + paladinFireResistanceStrategy.getName(), BotState::BOT_STATE_COMBAT);
@@ -32,7 +33,7 @@ bool BossFrostResistanceAction::isUseful()
     return bossFrostResistanceTrigger.IsActive();
 }
 
-bool BossFrostResistanceAction::Execute(Event event)
+bool BossFrostResistanceAction::Execute(Event /*event*/)
 {
     PaladinFrostResistanceStrategy paladinFrostResistanceStrategy(botAI);
     botAI->ChangeStrategy(ADD_STRATEGY_CHAR + paladinFrostResistanceStrategy.getName(), BotState::BOT_STATE_COMBAT);
@@ -46,7 +47,7 @@ bool BossNatureResistanceAction::isUseful()
     return bossNatureResistanceTrigger.IsActive();
 }
 
-bool BossNatureResistanceAction::Execute(Event event)
+bool BossNatureResistanceAction::Execute(Event /*event*/)
 {
     HunterNatureResistanceStrategy hunterNatureResistanceStrategy(botAI);
     botAI->ChangeStrategy(ADD_STRATEGY_CHAR + hunterNatureResistanceStrategy.getName(), BotState::BOT_STATE_COMBAT);
@@ -60,7 +61,7 @@ bool BossShadowResistanceAction::isUseful()
     return bossShadowResistanceTrigger.IsActive();
 }
 
-bool BossShadowResistanceAction::Execute(Event event)
+bool BossShadowResistanceAction::Execute(Event /*event*/)
 {
     PaladinShadowResistanceStrategy paladinShadowResistanceStrategy(botAI);
     botAI->ChangeStrategy(ADD_STRATEGY_CHAR + paladinShadowResistanceStrategy.getName(), BotState::BOT_STATE_COMBAT);

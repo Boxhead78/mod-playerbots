@@ -1,22 +1,11 @@
 /*
- * This file is part of the AzerothCore Project. See AUTHORS file for Copyright information
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU Affero General Public License as published by the
- * Free Software Foundation; either version 3 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
+ * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
+ * and/or modify it under version 3 of the License, or (at your option), any later version.
  */
 
 #include "Playerbots.h"
 
+#include "BattlefieldScript.h"
 #include "Channel.h"
 #include "Config.h"
 #include "DatabaseEnv.h"
@@ -71,9 +60,7 @@ public:
         }
 
         if (revision.empty())
-        {
             revision = "Unknown Playerbots Database Revision";
-        }
     }
 };
 
@@ -115,15 +102,13 @@ public:
 
             if ((sPlayerbotAIConfig.enabled || sPlayerbotAIConfig.randomBotAutologin) && player->IsGameMaster())
             {
-                std::string roundedTime =
-                    std::to_string(std::ceil((sPlayerbotAIConfig.maxRandomBots * 0.11 / 60) * 10) / 10.0);
-                roundedTime = roundedTime.substr(0, roundedTime.find('.') + 2);
+                std::string maxAllowedBotCount = std::to_string(sRandomPlayerbotMgr.GetMaxAllowedBotCount());
 
                 uint32 loc = player->GetSession()->GetSessionDbLocaleIndex();
                 if (loc == 3)
-                    ChatHandler(player->GetSession()).SendSysMessage("|cff00ff00Playerbots:|r Die Initialisierung der Bots beim Serverstart dauert etwa '" + roundedTime + "' Minuten.");
+                    ChatHandler(player->GetSession()).SendSysMessage("|cff00ff00Playerbots:|r Dieser server is mit " + maxAllowedBotCount + " Bots konfiguriert.");
                 else
-                    ChatHandler(player->GetSession()).SendSysMessage("|cff00ff00Playerbots:|r bot initialization at server startup takes about '" + roundedTime + "' minutes.");
+                    ChatHandler(player->GetSession()).SendSysMessage("|cff00ff00Playerbots:|r The server is configured with " + maxAllowedBotCount + " bots.");
             }
         }
     }
@@ -221,16 +206,12 @@ public:
             Player* const member = itr->GetSource();
 
             if (member == nullptr)
-            {
                 continue;
-            }
 
             PlayerbotAI* const botAI = PlayerbotsMgr::instance().GetPlayerbotAI(member);
 
             if (botAI == nullptr)
-            {
                 continue;
-            }
 
             botAI->HandleCommand(type, msg, player);
         }
@@ -238,33 +219,25 @@ public:
         return true;
     }
 
-    bool OnPlayerCanUseChat(Player* player, uint32 type, uint32 /*lang*/, std::string& msg, Guild* guild) override
+    bool OnPlayerCanUseChat(Player* player, uint32 type, uint32 /*lang*/, std::string& msg, Guild* /*guild*/) override
     {
         if (type != CHAT_MSG_GUILD)
-        {
             return true;
-        }
 
         PlayerbotMgr* playerbotMgr = PlayerbotsMgr::instance().GetPlayerbotMgr(player);
 
         if (playerbotMgr == nullptr)
-        {
             return true;
-        }
 
         for (PlayerBotMap::const_iterator it = playerbotMgr->GetPlayerBotsBegin(); it != playerbotMgr->GetPlayerBotsEnd(); ++it)
         {
             Player* const bot = it->second;
 
             if (bot == nullptr)
-            {
                 continue;
-            }
 
             if (bot->GetGuildId() != player->GetGuildId())
-            {
                 continue;
-            }
 
             PlayerbotsMgr::instance().GetPlayerbotAI(bot)->HandleCommand(type, msg, player);
         }
@@ -277,9 +250,7 @@ public:
         PlayerbotMgr* const playerbotMgr = PlayerbotsMgr::instance().GetPlayerbotMgr(player);
 
         if (playerbotMgr != nullptr && channel->GetFlags() & 0x18)
-        {
             playerbotMgr->HandleCommand(type, msg);
-        }
 
         sRandomPlayerbotMgr.HandleCommand(type, msg, player);
 
@@ -314,14 +285,10 @@ public:
             {
                 Player* member = gref->GetSource();
                 if (!member)
-                {
                     continue;
-                }
 
                 if (!member->GetSession()->IsBot())
-                {
                     return;
-                }
             }
         }
 
@@ -372,14 +339,10 @@ public:
         PlayerbotAI* botAI = PlayerbotsMgr::instance().GetPlayerbotAI(player);
 
         if (botAI != nullptr)
-        {
             delete botAI;
-        }
 
         if (PlayerbotMgr* playerbotMgr = GET_PLAYERBOT_MGR(player))
-        {
             delete playerbotMgr;
-        }
     }
 };
 
@@ -477,14 +440,10 @@ public:
     void OnPlayerbotCheckPetitionAccount(Player* player, bool& found) override
     {
         if (!found)
-        {
             return;
-        }
 
         if (PlayerbotsMgr::instance().GetPlayerbotAI(player) != nullptr)
-        {
             found = false;
-        }
     }
 
     bool OnPlayerbotCheckUpdatesToSend(Player* player) override
@@ -492,9 +451,7 @@ public:
         PlayerbotAI* botAI = PlayerbotsMgr::instance().GetPlayerbotAI(player);
 
         if (botAI == nullptr)
-        {
             return true;
-        }
 
         return botAI->IsRealPlayer();
     }
@@ -502,24 +459,18 @@ public:
     void OnPlayerbotPacketSent(Player* player, WorldPacket const* packet) override
     {
         if (player == nullptr)
-        {
             return;
-        }
 
         PlayerbotAI* botAI = PlayerbotsMgr::instance().GetPlayerbotAI(player);
 
         if (botAI != nullptr)
-        {
             botAI->HandleBotOutgoingPacket(*packet);
-        }
 
         if (PlayerbotMgr* playerbotMgr = GET_PLAYERBOT_MGR(player))
-        {
             playerbotMgr->HandleMasterOutgoingPacket(*packet);
-        }
     }
 
-    void OnPlayerbotUpdate(uint32 diff) override
+    void OnPlayerbotUpdate(uint32 /*diff*/) override
     {
         sRandomPlayerbotMgr.UpdateSessions();  // Per-bot updates only
     }
@@ -687,10 +638,24 @@ public:
     void OnBattlegroundEnd(Battleground* bg, TeamId /*winnerTeam*/) override { bgStrategies.erase(bg->GetInstanceID()); }
 };
 
+// Workaround for missing InitEnabledHooksIfNeeded for new BattlefieldScript in ScriptMgr
+class PlayerbotsBattlefieldScript : public BattlefieldScript
+{
+public:
+    PlayerbotsBattlefieldScript() : BattlefieldScript("PlayerbotsBattlefieldScript") { }
+};
+
 void AddPlayerbotsSecureLoginScripts();
+
+void AddSC_MagtheridonBotScripts();
+void AddSC_TempestKeepBotScripts();
+void AddSC_HyjalSummitBotScripts();
+void AddSC_IcecrownBotScripts();
+void AddSC_RubySanctumBotScripts();
 
 void AddPlayerbotsScripts()
 {
+    new PlayerbotsBattlefieldScript();
     new PlayerbotsDatabaseScript();
     new PlayerbotsPlayerScript();
     new PlayerbotsMiscScript();
@@ -702,4 +667,9 @@ void AddPlayerbotsScripts()
     AddPlayerbotsSecureLoginScripts();
     AddPlayerbotsCommandscripts();
     PlayerBotsGuildValidationScript();
+    AddSC_MagtheridonBotScripts();
+    AddSC_TempestKeepBotScripts();
+    AddSC_HyjalSummitBotScripts();
+    AddSC_IcecrownBotScripts();
+    AddSC_RubySanctumBotScripts();
 }

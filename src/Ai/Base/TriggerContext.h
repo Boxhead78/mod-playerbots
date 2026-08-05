@@ -1,10 +1,11 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
-#ifndef _PLAYERBOT_TRIGGERCONTEXT_H
-#define _PLAYERBOT_TRIGGERCONTEXT_H
+#ifndef PLAYERBOTS_TRIGGERCONTEXT_H
+#define PLAYERBOTS_TRIGGERCONTEXT_H
 
 #include "CureTriggers.h"
 #include "FishingTriggers.h"
@@ -16,10 +17,12 @@
 #include "NewRpgStrategy.h"
 #include "NewRpgTriggers.h"
 #include "PvpTriggers.h"
+#include "PullTriggers.h"
 #include "RpgTriggers.h"
 #include "RtiTriggers.h"
 #include "StuckTriggers.h"
 #include "TravelTriggers.h"
+#include "WaitForAttackTriggers.h"
 
 class PlayerbotAI;
 
@@ -56,6 +59,7 @@ public:
 
         creators["low mana"] = &TriggerContext::LowMana;
         creators["medium mana"] = &TriggerContext::MediumMana;
+        creators["low energy"] = &TriggerContext::LowEnergy;
         creators["high mana"] = &TriggerContext::HighMana;
         creators["almost full mana"] = &TriggerContext::AlmostFullMana;
         creators["enough mana"] = &TriggerContext::EnoughMana;
@@ -64,8 +68,14 @@ public:
         creators["party member low health"] = &TriggerContext::PartyMemberLowHealth;
         creators["party member medium health"] = &TriggerContext::PartyMemberMediumHealth;
         creators["party member almost full health"] = &TriggerContext::PartyMemberAlmostFullHealth;
+        creators["healer low mana"] = &TriggerContext::HealerLowMana;
 
         creators["generic boost"] = &TriggerContext::generic_boost;
+        creators["loss of control"] = &TriggerContext::loss_of_control;
+        creators["fear charm sleep"] = &TriggerContext::fear_charm_sleep;
+        creators["fear sleep sap"] = &TriggerContext::fear_sleep_sap;
+        creators["poison disease bleed"] = &TriggerContext::poison_disease_bleed;
+        creators["movement impaired"] = &TriggerContext::movement_impaired;
 
         creators["protect party member"] = &TriggerContext::protect_party_member;
 
@@ -110,7 +120,8 @@ public:
         creators["enemy within melee"] = &TriggerContext::enemy_within_melee;
         creators["party member to heal out of spell range"] = &TriggerContext::party_member_to_heal_out_of_spell_range;
 
-        creators["combo points available"] = &TriggerContext::ComboPointsAvailable;
+        creators["combo points 5 available"] = &TriggerContext::ComboPoints5Available;
+        creators["combo points 4 available"] = &TriggerContext::ComboPoints4Available;
         creators["combo points 3 available"] = &TriggerContext::ComboPoints3Available;
         creators["target with combo points almost dead"] = &TriggerContext::target_with_combo_points_almost_dead;
         creators["combo points not full"] = &TriggerContext::ComboPointsNotFull;
@@ -131,6 +142,9 @@ public:
         creators["has attackers"] = &TriggerContext::has_attackers;
         creators["no possible targets"] = &TriggerContext::no_possible_targets;
         creators["possible adds"] = &TriggerContext::possible_adds;
+        creators["pull start"] = &TriggerContext::pull_start;
+        creators["pull end"] = &TriggerContext::pull_end;
+        creators["return to pull position"] = &TriggerContext::return_to_pull_position;
 
         creators["no drink"] = &TriggerContext::no_drink;
         creators["no food"] = &TriggerContext::no_food;
@@ -232,10 +246,12 @@ public:
         creators["wander npc status"] = &TriggerContext::wander_npc_status;
         creators["do quest status"] = &TriggerContext::do_quest_status;
         creators["travel flight status"] = &TriggerContext::travel_flight_status;
+        creators["outdoor pvp status"] = &TriggerContext::outdoor_pvp_status;
         creators["can self resurrect"] = &TriggerContext::can_self_resurrect;
         creators["can fish"] = &TriggerContext::can_fish;
         creators["can use fishing bobber"] = &TriggerContext::can_use_fishing_bobber;
         creators["new pet"] = &TriggerContext::new_pet;
+        creators["wait for attack safe distance"] = &TriggerContext::wait_for_attack_safe_distance;
     }
 
 private:
@@ -280,6 +296,9 @@ private:
     static Trigger* swimming(PlayerbotAI* botAI) { return new IsSwimmingTrigger(botAI); }
     static Trigger* no_possible_targets(PlayerbotAI* botAI) { return new NoPossibleTargetsTrigger(botAI); }
     static Trigger* possible_adds(PlayerbotAI* botAI) { return new PossibleAddsTrigger(botAI); }
+    static Trigger* pull_start(PlayerbotAI* botAI) { return new PullStartTrigger(botAI); }
+    static Trigger* pull_end(PlayerbotAI* botAI) { return new PullEndTrigger(botAI); }
+    static Trigger* return_to_pull_position(PlayerbotAI* botAI) { return new ReturnToPullPositionTrigger(botAI); }
     static Trigger* can_loot(PlayerbotAI* botAI) { return new CanLootTrigger(botAI); }
     static Trigger* far_from_loot_target(PlayerbotAI* botAI) { return new FarFromCurrentLootTrigger(botAI); }
     static Trigger* far_from_master(PlayerbotAI* botAI) { return new FarFromMasterTrigger(botAI); }
@@ -305,6 +324,7 @@ private:
     static Trigger* TargetCriticalHealth(PlayerbotAI* botAI) { return new TargetCriticalHealthTrigger(botAI); }
     static Trigger* LowMana(PlayerbotAI* botAI) { return new LowManaTrigger(botAI); }
     static Trigger* MediumMana(PlayerbotAI* botAI) { return new MediumManaTrigger(botAI); }
+    static Trigger* LowEnergy(PlayerbotAI* botAI) { return new LowEnergyTrigger(botAI); }
     static Trigger* HighMana(PlayerbotAI* botAI) { return new HighManaTrigger(botAI); }
     static Trigger* AlmostFullMana(PlayerbotAI* botAI) { return new AlmostFullManaTrigger(botAI); }
     static Trigger* EnoughMana(PlayerbotAI* botAI) { return new EnoughManaTrigger(botAI); }
@@ -352,7 +372,8 @@ private:
     {
         return new PartyMemberToHealOutOfSpellRangeTrigger(botAI);
     }
-    static Trigger* ComboPointsAvailable(PlayerbotAI* botAI) { return new ComboPointsAvailableTrigger(botAI); }
+    static Trigger* ComboPoints5Available(PlayerbotAI* botAI) { return new ComboPointsAvailableTrigger(botAI, 5); }
+    static Trigger* ComboPoints4Available(PlayerbotAI* botAI) { return new ComboPointsAvailableTrigger(botAI, 4); }
     static Trigger* ComboPoints3Available(PlayerbotAI* botAI) { return new ComboPointsAvailableTrigger(botAI, 3); }
     static Trigger* target_with_combo_points_almost_dead(PlayerbotAI* ai)
     {
@@ -375,10 +396,16 @@ private:
         return new PartyMemberAlmostFullHealthTrigger(botAI);
     }
     static Trigger* generic_boost(PlayerbotAI* botAI) { return new GenericBoostTrigger(botAI); }
+    static Trigger* loss_of_control(PlayerbotAI* botAI) { return new LossOfControlTrigger(botAI); }
+    static Trigger* fear_charm_sleep(PlayerbotAI* botAI) { return new FearCharmSleepTrigger(botAI); }
+    static Trigger* fear_sleep_sap(PlayerbotAI* botAI) { return new FearSleepSapTrigger(botAI); }
+    static Trigger* poison_disease_bleed(PlayerbotAI* botAI) { return new PoisonDiseaseBleedTrigger(botAI); }
+    static Trigger* movement_impaired(PlayerbotAI* botAI) { return new MovementImpairedTrigger(botAI); }
     static Trigger* PartyMemberCriticalHealth(PlayerbotAI* botAI)
     {
         return new PartyMemberCriticalHealthTrigger(botAI);
     }
+    static Trigger* HealerLowMana(PlayerbotAI* botAI) { return new HealerLowManaTrigger(botAI); }
     static Trigger* protect_party_member(PlayerbotAI* botAI) { return new ProtectPartyMemberTrigger(botAI); }
     static Trigger* no_pet(PlayerbotAI* botAI) { return new NoPetTrigger(botAI); }
     static Trigger* has_pet(PlayerbotAI* botAI) { return new HasPetTrigger(botAI); }
@@ -440,10 +467,12 @@ private:
     static Trigger* wander_npc_status(PlayerbotAI* botAI) { return new NewRpgStatusTrigger(botAI, RPG_WANDER_NPC); }
     static Trigger* do_quest_status(PlayerbotAI* botAI) { return new NewRpgStatusTrigger(botAI, RPG_DO_QUEST); }
     static Trigger* travel_flight_status(PlayerbotAI* botAI) { return new NewRpgStatusTrigger(botAI, RPG_TRAVEL_FLIGHT); }
+    static Trigger* outdoor_pvp_status(PlayerbotAI* botAI) { return new NewRpgStatusTrigger(botAI, RPG_OUTDOOR_PVP); }
     static Trigger* can_self_resurrect(PlayerbotAI* ai) { return new SelfResurrectTrigger(ai); }
     static Trigger* can_fish(PlayerbotAI* ai) { return new CanFishTrigger(ai); }
     static Trigger* can_use_fishing_bobber(PlayerbotAI* ai) { return new CanUseFishingBobberTrigger(ai); }
     static Trigger* new_pet(PlayerbotAI* ai) { return new NewPetTrigger(ai); }
+    static Trigger* wait_for_attack_safe_distance(PlayerbotAI* ai) { return new WaitForAttackSafeDistanceTrigger(ai); }
 };
 
 #endif

@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "FleeManager.h"
@@ -62,9 +63,9 @@ void FleeManager::calculatePossibleDestinations(std::vector<FleePoint*>& points)
     }
     Unit* target = *botAI->GetAiObjectContext()->GetValue<Unit*>("current target");
 
-    float botPosX = startPosition.getX();
-    float botPosY = startPosition.getY();
-    float botPosZ = startPosition.getZ();
+    float botPosX = startPosition.GetPositionX();
+    float botPosY = startPosition.GetPositionY();
+    float botPosZ = startPosition.GetPositionZ();
 
     FleePoint start(botAI, botPosX, botPosY, botPosZ);
     calculateDistanceToCreatures(&start);

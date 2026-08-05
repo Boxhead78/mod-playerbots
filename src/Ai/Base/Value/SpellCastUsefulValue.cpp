@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "SpellCastUsefulValue.h"
@@ -40,13 +41,13 @@ bool SpellCastUsefulValue::Calculate()
         return false;
     }
 
-    // TODO: workaround
-    if (qualifier == "windfury weapon" || qualifier == "flametongue weapon" || qualifier == "frostbrand weapon" ||
-        qualifier == "rockbiter weapon" || qualifier == "earthliving weapon" || qualifier == "spellstone")
+    if (qualifier == "windfury weapon" || qualifier == "flametongue weapon" ||
+        qualifier == "frostbrand weapon" ||  qualifier == "rockbiter weapon" ||
+        qualifier == "earthliving weapon" || qualifier == "spellstone")
     {
-        if (Item* item = AI_VALUE2(Item*, "item for spell", spellid))
-            if (item->IsInWorld() && item->GetEnchantmentId(TEMP_ENCHANTMENT_SLOT))
-                return false;
+        if (Item* item = AI_VALUE2(Item*, "item for spell", spellid);
+            item && item->IsInWorld() && item->GetEnchantmentId(TEMP_ENCHANTMENT_SLOT))
+            return false;
     }
 
     std::set<uint32>& skipSpells = AI_VALUE(std::set<uint32>&, "skip spells list");

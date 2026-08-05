@@ -1,13 +1,11 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "PlayerbotRepository.h"
-
-#include <iostream>
-
-#include "Playerbots.h"
+#include "AiObjectContext.h"
 
 void PlayerbotRepository::Load(PlayerbotAI* botAI)
 {
@@ -42,6 +40,8 @@ void PlayerbotRepository::Load(PlayerbotAI* botAI)
                 botAI->ChangeStrategy(value, BOT_STATE_DEAD);
         } while (result->NextRow());
 
+        botAI->GetAiObjectContext()->GetUntypedValue("outfit list");
+
         botAI->GetAiObjectContext()->Load(values);
     }
 }
@@ -68,7 +68,7 @@ void PlayerbotRepository::Save(PlayerbotAI* botAI)
     SaveValue(guid, "dead", FormatStrategies("dead", botAI->GetStrategies(BOT_STATE_DEAD)));
 }
 
-std::string const PlayerbotRepository::FormatStrategies(std::string const type, std::vector<std::string> strategies)
+std::string const PlayerbotRepository::FormatStrategies(std::string const /*type*/, std::vector<std::string> strategies)
 {
     std::ostringstream out;
     for (std::vector<std::string>::iterator i = strategies.begin(); i != strategies.end(); ++i)

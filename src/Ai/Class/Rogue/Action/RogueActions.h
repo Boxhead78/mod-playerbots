@@ -1,10 +1,11 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
-#ifndef _PLAYERBOT_ROGUEACTIONS_H
-#define _PLAYERBOT_ROGUEACTIONS_H
+#ifndef PLAYERBOTS_ROGUEACTIONS_H
+#define PLAYERBOTS_ROGUEACTIONS_H
 
 #include "GenericSpellActions.h"
 #include "UseItemAction.h"
@@ -27,6 +28,7 @@ class CastHungerForBloodAction : public CastBuffSpellAction
 {
 public:
     CastHungerForBloodAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "hunger for blood") {}
+
     std::string const GetTargetName() override { return "current target"; }
 };
 
@@ -43,9 +45,9 @@ class CastStealthAction : public CastBuffSpellAction
 public:
     CastStealthAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "stealth") {}
 
-    std::string const GetTargetName() override { return "self target"; }
     bool isUseful() override;
     bool isPossible() override;
+    std::string const GetTargetName() override { return "self target"; }
 };
 
 class UnstealthAction : public Action
@@ -61,8 +63,8 @@ class CheckStealthAction : public Action
 public:
     CheckStealthAction(PlayerbotAI* botAI) : Action(botAI, "check stealth") {}
 
-    bool isPossible() override { return true; }
     bool Execute(Event event) override;
+    bool isPossible() override { return true; }
 };
 
 class CastKickAction : public CastSpellAction
@@ -75,6 +77,12 @@ class CastFeintAction : public CastBuffSpellAction
 {
 public:
     CastFeintAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "feint") {}
+};
+
+class CastColdBloodAction : public CastBuffSpellAction
+{
+public:
+    CastColdBloodAction(PlayerbotAI* botAI) : CastBuffSpellAction(botAI, "cold blood") {}
 };
 
 class CastDismantleAction : public CastSpellAction
@@ -131,6 +139,7 @@ class CastEnvenomAction : public CastMeleeSpellAction
 {
 public:
     CastEnvenomAction(PlayerbotAI* ai) : CastMeleeSpellAction(ai, "envenom") {}
+
     bool isUseful() override;
     bool isPossible() override;
 };
@@ -139,37 +148,42 @@ class CastTricksOfTheTradeOnMainTankAction : public BuffOnMainTankAction
 {
 public:
     CastTricksOfTheTradeOnMainTankAction(PlayerbotAI* ai) : BuffOnMainTankAction(ai, "tricks of the trade", true) {}
-    virtual bool isUseful() override;
+
+    bool isUseful() override;
 };
 
 class UseDeadlyPoisonAction : public UseItemAction
 {
 public:
     UseDeadlyPoisonAction(PlayerbotAI* ai) : UseItemAction(ai, "Deadly Poison") {}
-    virtual bool Execute(Event event) override;
-    virtual bool isPossible() override;
+
+    bool Execute(Event event) override;
+    bool isPossible() override;
 };
 
 class UseInstantPoisonAction : public UseItemAction
 {
 public:
     UseInstantPoisonAction(PlayerbotAI* ai) : UseItemAction(ai, "Instant Poison") {}
-    virtual bool Execute(Event event) override;
-    virtual bool isPossible() override;
+
+    bool Execute(Event event) override;
+    bool isPossible() override;
 };
 
 class UseInstantPoisonOffHandAction : public UseItemAction
 {
 public:
     UseInstantPoisonOffHandAction(PlayerbotAI* ai) : UseItemAction(ai, "Instant Poison Off Hand") {}
-    virtual bool Execute(Event event) override;
-    virtual bool isPossible() override;
+
+    bool Execute(Event event) override;
+    bool isPossible() override;
 };
 
 class FanOfKnivesAction : public CastMeleeSpellAction
 {
 public:
     FanOfKnivesAction(PlayerbotAI* ai) : CastMeleeSpellAction(ai, "fan of knives") {}
+
     ActionThreatType getThreatType() override { return ActionThreatType::Aoe; }
 };
 

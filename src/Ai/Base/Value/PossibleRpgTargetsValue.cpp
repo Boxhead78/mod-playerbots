@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "PossibleRpgTargetsValue.h"
@@ -13,6 +14,7 @@
 #include "ServerFacade.h"
 #include "SharedDefines.h"
 #include "NearestGameObjects.h"
+#include <unordered_set>
 
 std::vector<uint32> PossibleRpgTargetsValue::allowedNpcFlags;
 
@@ -74,7 +76,7 @@ bool PossibleRpgTargetsValue::AcceptUnit(Unit* unit)
 
     TravelTarget* travelTarget = context->GetValue<TravelTarget*>("travel target")->Get();
     if (travelTarget && travelTarget->getDestination() &&
-        travelTarget->getDestination()->getEntry() == unit->GetEntry())
+        static_cast<uint32>(travelTarget->getDestination()->getEntry()) == unit->GetEntry())
         return true;
 
     if (urand(1, 100) < 25 && unit->IsFriendlyTo(bot))
@@ -88,8 +90,11 @@ bool PossibleRpgTargetsValue::AcceptUnit(Unit* unit)
 
 std::vector<uint32> PossibleNewRpgTargetsValue::allowedNpcFlags;
 
+// Sparse starting zones where the default scan range is insufficient for WANDER_NPC (requires >= 3 NPCs)
+static const std::unordered_set<uint32> rpgRangeOverrideAreaIds = { 3526 /* Ammen Vale */, 2117 /* Deathknell */ };
+
 PossibleNewRpgTargetsValue::PossibleNewRpgTargetsValue(PlayerbotAI* botAI, float range)
-    : NearestUnitsValue(botAI, "possible new rpg targets", range, true)
+    : NearestUnitsValue(botAI, "possible new rpg targets", range, true), defaultRange(range)
 {
     if (allowedNpcFlags.empty())
     {
@@ -119,6 +124,11 @@ PossibleNewRpgTargetsValue::PossibleNewRpgTargetsValue(PlayerbotAI* botAI, float
 
 GuidVector PossibleNewRpgTargetsValue::Calculate()
 {
+    if (rpgRangeOverrideAreaIds.count(bot->GetAreaId()) && defaultRange < 200.0f)
+        range = 200.0f;
+    else
+        range = defaultRange;
+
     std::list<Unit*> targets;
     FindUnits(targets);
 

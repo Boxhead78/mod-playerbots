@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "GiveItemAction.h"
@@ -11,7 +12,7 @@
 
 std::vector<std::string> split(std::string const s, char delim);
 
-bool GiveItemAction::Execute(Event event)
+bool GiveItemAction::Execute(Event /*event*/)
 {
     Unit* target = GetTarget();
     if (!target)
@@ -28,7 +29,6 @@ bool GiveItemAction::Execute(Event event)
     if (receiverAi->GetAiObjectContext()->GetValue<uint32>("item count", item)->Get())
         return true;
 
-    bool moved = false;
     std::vector<Item*> items = InventoryAction::parseItems(item, ITERATE_ITEMS_IN_BAGS);
     for (Item* item : items)
     {
@@ -42,7 +42,6 @@ bool GiveItemAction::Execute(Event event)
             bot->MoveItemFromInventory(item->GetBagSlot(), item->GetSlot(), true);
             item->SetOwnerGUID(target->GetGUID());
             receiver->MoveItemToInventory(dest, item, true);
-            moved = true;
 
             std::ostringstream out;
             out << "Got " << chat->FormatItem(item->GetTemplate(), item->GetCount()) << " from " << bot->GetName();

@@ -1,10 +1,11 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
-#ifndef _PLAYERBOT_TRAVELNODE_H
-#define _PLAYERBOT_TRAVELNODE_H
+#ifndef PLAYERBOTS_TRAVELNODE_H
+#define PLAYERBOTS_TRAVELNODE_H
 
 #include <shared_mutex>
 
@@ -251,11 +252,11 @@ public:
     }
 
     // WorldLocation shortcuts
-    uint32 getMapId() { return point.getMapId(); }
-    float getX() { return point.getX(); }
-    float getY() { return point.getY(); }
-    float getZ() { return point.getZ(); }
-    float getO() { return point.getO(); }
+    uint32 getMapId() { return point.GetMapId(); }
+    float getX() { return point.GetPositionX(); }
+    float getY() { return point.GetPositionY(); }
+    float getZ() { return point.GetPositionZ(); }
+    float getO() { return point.GetOrientation(); }
     float getDistance(WorldPosition pos) { return point.distance(pos); }
     float getDistance(TravelNode* node) { return point.distance(node->getPosition()); }
     float fDist(TravelNode* node) { return point.fDist(node->getPosition()); }
@@ -580,6 +581,10 @@ public:
     void calcMapOffset();
     WorldPosition getMapOffset(uint32 mapId);
 
+    // Taxi graph (BFS-based path lookup between taxi nodes)
+    void InitTaxiGraph();
+    std::vector<uint32> FindTaxiPath(uint32 fromNode, uint32 toNode);
+
     std::shared_timed_mutex m_nMapMtx;
     std::unordered_map<ObjectGuid, std::unordered_map<uint32, TravelNode*>> teleportNodes;
 
@@ -592,6 +597,16 @@ private:
 
     TravelNodeMap(TravelNodeMap&&) = delete;
     TravelNodeMap& operator=(TravelNodeMap&&) = delete;
+
+    // Taxi graph internals
+    void BuildTaxiGraph();
+    void ComputeAllPaths();
+    std::unordered_map<uint32, uint32> BFS(uint32 startNode);
+    std::vector<uint32> BuildPath(uint32 fromNode, uint32 toNode,
+                                  const std::unordered_map<uint32, uint32>& parentMap);
+
+    std::unordered_map<uint32, std::vector<uint32>> taxiGraph;
+    std::map<uint32, std::map<uint32, std::vector<uint32>>> taxiPathCache;
 
     std::vector<TravelNode*> m_nodes;
 

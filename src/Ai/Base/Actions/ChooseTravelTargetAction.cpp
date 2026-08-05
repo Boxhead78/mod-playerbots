@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "ChooseTravelTargetAction.h"
@@ -9,7 +10,7 @@
 #include "LootObjectStack.h"
 #include "Playerbots.h"
 
-bool ChooseTravelTargetAction::Execute(Event event)
+bool ChooseTravelTargetAction::Execute(Event /*event*/)
 {
     // Player* requester = event.getOwner() ? event.getOwner() : GetMaster(); //not used, line marked for removal.
 
@@ -232,15 +233,6 @@ void ChooseTravelTargetAction::ReportTravelTarget(TravelTarget* newTarget, Trave
         QuestTravelDestination* QuestDestination = (QuestTravelDestination*)destination;
         Quest const* quest = QuestDestination->GetQuestTemplate();
         WorldPosition botLocation(bot);
-
-        CreatureTemplate const* cInfo = nullptr;
-        GameObjectTemplate const* gInfo = nullptr;
-
-        if (destination->getEntry() > 0)
-            cInfo = sObjectMgr->GetCreatureTemplate(destination->getEntry());
-        else
-            gInfo = sObjectMgr->GetGameObjectTemplate(destination->getEntry() * -1);
-
         std::string Sub;
 
         if (newTarget->isGroupCopy())
@@ -478,7 +470,7 @@ bool ChooseTravelTargetAction::SetCurrentTarget(TravelTarget* target, TravelTarg
     return target->isActive();
 }
 
-bool ChooseTravelTargetAction::SetQuestTarget(TravelTarget* target, bool onlyCompleted, bool newQuests, bool activeQuests, bool completedQuests)
+bool ChooseTravelTargetAction::SetQuestTarget(TravelTarget* target, bool /*onlyCompleted*/, bool newQuests, bool activeQuests, bool completedQuests)
 {
     std::vector<TravelDestination*> activeDestinations;
     std::vector<WorldPosition*> activePoints;
@@ -823,10 +815,6 @@ char* strstri(char const* haystack, char const* needle);
 
 TravelDestination* ChooseTravelTargetAction::FindDestination(Player* bot, std::string const name, bool zones, bool npcs, bool quests, bool mobs, bool bosses)
 {
-    PlayerbotAI* botAI = GET_PLAYERBOT_AI(bot);
-
-    // AiObjectContext* context = botAI->GetAiObjectContext(); //not used, line marked for removal.
-
     std::vector<TravelDestination*> dests;
 
     //Quests
@@ -941,7 +929,7 @@ bool ChooseTravelTargetAction::needForQuest(Unit* target)
                     int required = questTemplate->RequiredNpcOrGoCount[j];
                     int available = questStatus.CreatureOrGOCount[j];
 
-                    if (required && available < required && (target->GetEntry() == entry || justCheck))
+                    if (required && available < required && (target->GetEntry() == uint32(entry) || justCheck))
                         return true;
                 }
 

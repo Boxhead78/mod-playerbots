@@ -1,10 +1,11 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
-#ifndef _PLAYERBOT_CHOOSETARGETACTIONS_H
-#define _PLAYERBOT_CHOOSETARGETACTIONS_H
+#ifndef PLAYERBOTS_CHOOSETARGETACTIONS_H
+#define PLAYERBOTS_CHOOSETARGETACTIONS_H
 
 #include "AttackAction.h"
 
@@ -33,6 +34,15 @@ public:
     TankAssistAction(PlayerbotAI* botAI) : AttackAction(botAI, "tank assist") {}
 
     std::string const GetTargetName() override { return "tank target"; }
+};
+
+class AggressiveTargetAction : public AttackAction
+{
+public:
+    AggressiveTargetAction(PlayerbotAI* botAI) : AttackAction(botAI, "aggressive target") {}
+
+    std::string const GetTargetName() override { return "aggressive target"; }
+    bool isUseful() override;
 };
 
 class AttackAnythingAction : public AttackAction

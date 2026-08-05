@@ -1,10 +1,11 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
-#ifndef _PLAYERBOT_RANDOMPLAYERBOTMGR_H
-#define _PLAYERBOT_RANDOMPLAYERBOTMGR_H
+#ifndef PLAYERBOTS_RANDOMPLAYERBOTMGR_H
+#define PLAYERBOTS_RANDOMPLAYERBOTMGR_H
 
 #include "NewRpgInfo.h"
 #include "ObjectGuid.h"
@@ -140,6 +141,7 @@ public:
     std::string GetData(uint32 bot, std::string const& type);
     void SetValue(uint32 bot, std::string const& type, uint32 value, std::string const& data = "");
     void SetValue(Player* bot, std::string const& type, uint32 value, std::string const& data = "");
+    bool IsSpecPvp(uint32 bot, uint8 cls);
     void Remove(Player* bot);
     ObjectGuid GetBattleMasterGUID(Player* bot, BattlegroundTypeId bgTypeId);
     CreatureData const* GetCreatureDataByEntry(uint32 entry);
@@ -164,25 +166,8 @@ public:
     static uint8 GetTeamClassIdx(bool isAlliance, uint8 claz) { return isAlliance * 20 + claz; }
 
     void PrepareAddclassCache();
-    void PrepareZone2LevelBracket();
-    void PrepareTeleportCache();
     void Init();
     std::map<uint8, std::unordered_set<ObjectGuid>> addclassCache;
-    std::map<uint8, std::vector<WorldLocation>> locsPerLevelCache;
-    std::map<uint8, std::vector<WorldLocation>> allianceStarterPerLevelCache;
-    std::map<uint8, std::vector<WorldLocation>> hordeStarterPerLevelCache;
-
-    struct LevelBracket {
-        uint32 low;
-        uint32 high;
-        bool InsideBracket(uint32 val) { return val >= low && val <= high; }
-    };
-    std::map<uint32, LevelBracket> zone2LevelBracket;
-    struct BankerLocation {
-        WorldLocation loc;
-        uint32 entry;
-    };
-    std::map<uint8, std::vector<BankerLocation>> bankerLocsPerLevelCache;
 
     // Account type management
     void AssignAccountTypes();

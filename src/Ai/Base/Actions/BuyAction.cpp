@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "BuyAction.h"
@@ -175,7 +176,7 @@ bool BuyAction::Execute(Event event)
 
                     if (needMoneyFor == NeedMoneyFor::gear)
                     {
-                        botAI->DoSpecificAction("equip upgrades");
+                        botAI->DoSpecificAction("equip upgrades packet action");
                     }
                 }
             }
@@ -206,20 +207,14 @@ bool BuyAction::Execute(Event event)
                 if (usage == ITEM_USAGE_REPLACE || usage == ITEM_USAGE_EQUIP ||
                     usage == ITEM_USAGE_BAD_EQUIP || usage == ITEM_USAGE_BROKEN_EQUIP)
                 {
-                    botAI->DoSpecificAction("equip upgrades");
+                    botAI->DoSpecificAction("equip upgrades packet action");
                     break;
                 }
             }
         }
     }
 
-    if (!vendored)
-    {
-        botAI->TellError("There are no vendors nearby");
-        return false;
-    }
-
-    return true;
+    return vendored;
 }
 
 bool BuyAction::BuyItem(VendorItemData const* tItems, ObjectGuid vendorguid, ItemTemplate const* proto)

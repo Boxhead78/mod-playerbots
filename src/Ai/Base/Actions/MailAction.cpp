@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "MailAction.h"
@@ -78,7 +79,7 @@ private:
 class TakeMailProcessor : public MailProcessor
 {
 public:
-    bool Process(uint32 index, Mail* mail, PlayerbotAI* botAI) override
+    bool Process(uint32 /*index*/, Mail* mail, PlayerbotAI* botAI) override
     {
         Player* bot = botAI->GetBot();
         if (!CheckBagSpace(bot))
@@ -104,7 +105,7 @@ public:
         {
             std::vector<uint32> guids;
             for (MailItemInfoVec::iterator i = mail->items.begin(); i != mail->items.end(); ++i)
-                if (ItemTemplate const* proto = sObjectMgr->GetItemTemplate(i->item_template))
+                if (sObjectMgr->GetItemTemplate(i->item_template))
                     guids.push_back(i->item_guid);
 
             for (std::vector<uint32>::iterator i = guids.begin(); i != guids.end(); ++i)
@@ -134,7 +135,7 @@ public:
 private:
     bool CheckBagSpace(Player* bot)
     {
-        uint32 totalused = 0, total = 16;
+        uint32 totalused = 0;
         for (uint8 slot = INVENTORY_SLOT_ITEM_START; slot < INVENTORY_SLOT_ITEM_END; slot++)
             if (bot->GetItemByPos(INVENTORY_SLOT_BAG_0, slot))
                 ++totalused;
@@ -157,7 +158,7 @@ private:
 class DeleteMailProcessor : public MailProcessor
 {
 public:
-    bool Process(uint32 index, Mail* mail, PlayerbotAI* botAI) override
+    bool Process(uint32 /*index*/, Mail* mail, PlayerbotAI* botAI) override
     {
         std::ostringstream out;
         out << "|cffffffff" << mail->subject << "|cffff0000 deleted";
@@ -172,7 +173,7 @@ public:
 class ReadMailProcessor : public MailProcessor
 {
 public:
-    bool Process(uint32 index, Mail* mail, PlayerbotAI* botAI) override
+    bool Process(uint32 /*index*/, Mail* mail, PlayerbotAI* botAI) override
     {
         std::ostringstream out, body;
         out << "|cffffffff" << mail->subject;

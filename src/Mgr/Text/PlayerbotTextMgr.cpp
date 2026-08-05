@@ -1,7 +1,9 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
+
 #include "DatabaseEnv.h"
 #include "WorldSessionMgr.h"
 #include "Random.h"
@@ -38,7 +40,7 @@ void PlayerbotTextMgr::LoadBotTexts()
             text[0] = fields[1].Get<std::string>();
             uint8 sayType = fields[2].Get<uint8>();
             uint8 replyType = fields[3].Get<uint8>();
-            for (uint8 i = 1; i < MAX_LOCALES; ++i)
+            for (uint8 i = 1; i < TOTAL_LOCALES; ++i)
             {
                 text[i] = fields[i + 3].Get<std::string>();
             }
@@ -192,9 +194,9 @@ bool PlayerbotTextMgr::GetBotText(std::string name, std::string& text, std::map<
 
 void PlayerbotTextMgr::AddLocalePriority(uint32 locale)
 {
-    if (locale >= MAX_LOCALES)
+    if (locale >= TOTAL_LOCALES)
     {
-        LOG_WARN("playerbots", "Ignoring locale {} for bot texts because it exceeds MAX_LOCALES ({})", locale, MAX_LOCALES - 1);
+        LOG_WARN("playerbots", "Ignoring locale {} for bot texts because it exceeds TOTAL_LOCALES ({})", locale, TOTAL_LOCALES - 1);
         return;
     }
 
@@ -212,7 +214,7 @@ uint32 PlayerbotTextMgr::GetLocalePriority()
     }
 
     uint32 topLocale = 0;
-    for (uint8 i = 0; i < MAX_LOCALES; ++i)
+    for (uint8 i = 0; i < TOTAL_LOCALES; ++i)
     {
         if (botTextLocalePriority[i] > botTextLocalePriority[topLocale])
             topLocale = i;
@@ -223,7 +225,7 @@ uint32 PlayerbotTextMgr::GetLocalePriority()
 
 void PlayerbotTextMgr::ResetLocalePriority()
 {
-    for (uint8 i = 0; i < MAX_LOCALES; ++i)
+    for (uint8 i = 0; i < TOTAL_LOCALES; ++i)
     {
         botTextLocalePriority[i] = 0;
     }

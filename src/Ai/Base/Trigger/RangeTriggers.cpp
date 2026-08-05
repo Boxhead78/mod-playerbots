@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "RangeTriggers.h"
@@ -10,11 +11,6 @@
 #include "Playerbots.h"
 #include "ServerFacade.h"
 #include "SharedDefines.h"
-
-static float GetSpeedInMotion(Unit* target)
-{
-    return target->GetSpeed(Movement::SelectSpeedType(target->GetUnitMovementFlags()));
-}
 
 bool EnemyTooCloseForSpellTrigger::IsActive()
 {
@@ -201,7 +197,6 @@ bool PartyMemberToHealOutOfSpellRangeTrigger::IsActive()
     if (!target)
         return false;
 
-    float combatReach = bot->GetCombatReach() + target->GetCombatReach();
     return target && (ServerFacade::instance().GetDistance2d(bot, target) > (distance + sPlayerbotAIConfig.contactDistance) ||
                       !bot->IsWithinLOSInMap(target));
 }

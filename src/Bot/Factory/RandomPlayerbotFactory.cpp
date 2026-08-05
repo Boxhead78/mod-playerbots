@@ -1,24 +1,21 @@
 /*
-* Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
-* and/or modify it under version 3 of the License, or (at your option), any later version.
-*/
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
+ */
 
 #include "RandomPlayerbotFactory.h"
 
 #include "AccountMgr.h"
 #include "ArenaTeamMgr.h"
 #include "DatabaseEnv.h"
-#include "GuildMgr.h"
-#include "PlayerbotFactory.h"
-#include "Playerbots.h"
-#include "PlayerbotGuildMgr.h"
+#include "PlayerbotAI.h"
+#include "RaceMgr.h"
 #include "ScriptMgr.h"
 #include "SharedDefines.h"
 #include "SocialMgr.h"
 #include "Timer.h"
-#include "Guild.h"            // EmblemInfo::SaveToDB
 #include "Log.h"
-#include "GuildMgr.h"
 
 constexpr RandomPlayerbotFactory::NameRaceAndGender RandomPlayerbotFactory::CombineRaceAndGender(uint8 race,
                                                                                                 uint8 gender)
@@ -71,7 +68,7 @@ Player* RandomPlayerbotFactory::CreateRandomBot(WorldSession* session, uint8 cls
     const bool alliance = static_cast<bool>(urand(0, 1));
 
     std::vector<uint8> raceOptions;
-    for (uint8 race = RACE_HUMAN; race < MAX_RACES; ++race)
+    for (uint8 race = RACE_HUMAN; race < sRaceMgr->GetMaxRaces(); ++race)
     {
         // skip disabled with config races
         if ((1 << (race - 1)) & sWorld->getIntConfig(CONFIG_CHARACTER_CREATING_DISABLED_RACEMASK))
@@ -251,7 +248,7 @@ std::string const RandomPlayerbotFactory::CreateRandomBotName(NameRaceAndGender 
         botName += (botName.size() < 2) ? groupFormEnd[gender][rand() % 4] : "";
 
         // Replace Catagory value with random Letter from that Catagory's Letter string for a given bot gender
-        for (int i = 0; i < botName.size(); i++)
+        for (size_t i = 0; i < botName.size(); i++)
         {
             botName[i] = groupLetter[gender][groupCategory.find(botName[i])]
                                     [rand() % groupLetter[gender][groupCategory.find(botName[i])].size()];
@@ -284,7 +281,7 @@ std::string const RandomPlayerbotFactory::CreateRandomBotName(NameRaceAndGender 
             botName.clear();
             continue;
         }
-        return std::move(botName);
+        return botName;
     }
 
     // TRUE RANDOM NAME GENERATION
@@ -309,11 +306,11 @@ std::string const RandomPlayerbotFactory::CreateRandomBotName(NameRaceAndGender 
             botName.clear();
             continue;
         }
-        return std::move(botName);
+        return botName;
     }
     LOG_ERROR("playerbots", "Random name generation failed.");
     botName.clear();
-    return std::move(botName);
+    return botName;
 }
 
 // Calculates the total number of required accounts, either using the specified randomBotAccountCount
@@ -345,17 +342,11 @@ uint32 RandomPlayerbotFactory::CalculateTotalAccountCount()
                 sPlayerbotAIConfig.addClassAccountPoolSize == 0 ? 2 : -1);
 
             if (!res || res->Fetch()[0].Get<uint64>() == 0)
-            {
                 break;
-            }
 
             std::this_thread::sleep_for(std::chrono::milliseconds(50));     // Extra 50ms fixed delay for safety.
         }
     }
-
-    // Checks if randomBotAccountCount is set, otherwise calculate it dynamically.
-    if (sPlayerbotAIConfig.randomBotAccountCount > 0)
-        return sPlayerbotAIConfig.randomBotAccountCount;
 
     // Check existing account types
     uint32 existingRndBotAccounts = 0;
@@ -377,16 +368,14 @@ uint32 RandomPlayerbotFactory::CalculateTotalAccountCount()
         } while (typeCheck->NextRow());
     }
 
-    // Determine divisor based on Death Knight login eligibility and requested A&H faction ratio
+    // Determine divisor based on Death Knight availability and requested A&H faction ratio
     int divisor = CalculateAvailableCharsPerAccount();
 
     // Calculate max bots
     int maxBots = sPlayerbotAIConfig.maxRandomBots;
-    // Take periodic online - offline into account
+    // Take periodic online/offline into account
     if (sPlayerbotAIConfig.enablePeriodicOnlineOffline)
-    {
         maxBots *= sPlayerbotAIConfig.periodicOnlineOfflineRatio;
-    }
 
     // Calculate number of accounts needed for RNDbots
     // Result is rounded up for maxBots not cleanly divisible by the divisor
@@ -427,7 +416,17 @@ uint32 RandomPlayerbotFactory::CalculateTotalAccountCount()
     }
 
     // Return existing total plus any additional accounts needed
-    return existingTotal + additionalAccountsNeeded;
+    uint32 calculatedTotal = existingTotal + additionalAccountsNeeded;
+
+    // Manually set randomBotAccountCount meets the requirements
+    if (sPlayerbotAIConfig.randomBotAccountCount >= calculatedTotal)
+        return sPlayerbotAIConfig.randomBotAccountCount;
+    // Manually set randomBotAccountCount doesn't meet the requirements. Using calculated value
+    if (sPlayerbotAIConfig.randomBotAccountCount > 0)
+        LOG_WARN("playerbots", "RandomBotAccountCount ({}) is lower than the required calculated value ({}). Using the calculated value instead.",
+            sPlayerbotAIConfig.randomBotAccountCount, calculatedTotal);
+
+    return calculatedTotal;
 }
 
 uint32 RandomPlayerbotFactory::CalculateAvailableCharsPerAccount()
@@ -445,11 +444,9 @@ uint32 RandomPlayerbotFactory::CalculateAvailableCharsPerAccount()
     float unavailableRatio = static_cast<float>((std::max(hordeRatio, allianceRatio) - std::min(hordeRatio, allianceRatio))) /
         (std::max(hordeRatio, allianceRatio) * 2);
 
+    // Conservative floor to ensure enough characters (may result in more accounts than needed).
     if (unavailableRatio != 0)
-    {
-        // conservative floor to ensure enough chars (may result in more accounts than needed)
         availableChars = availableChars - availableChars * unavailableRatio;
-    }
 
     return availableChars;
 }
@@ -630,7 +627,7 @@ void RandomPlayerbotFactory::CreateRandomBots()
         else
             password = accountName;
 
-        AccountMgr::CreateAccount(accountName, password);
+        sAccountMgr->CreateAccount(accountName, password);
 
         LOG_DEBUG("playerbots", "Account {} created for random bots", accountName.c_str());
     }
@@ -770,7 +767,7 @@ std::string const RandomPlayerbotFactory::CreateRandomGuildName()
     if (!result)
     {
         LOG_ERROR("playerbots", "No more names left for random guilds");
-        return std::move(guildName);
+        return guildName;
     }
 
     Field* fields = result->Fetch();
@@ -784,13 +781,13 @@ std::string const RandomPlayerbotFactory::CreateRandomGuildName()
     if (!result)
     {
         LOG_ERROR("playerbots", "No more names left for random guilds");
-        return std::move(guildName);
+        return guildName;
     }
 
     fields = result->Fetch();
     guildName = fields[0].Get<std::string>();
 
-    return std::move(guildName);
+    return guildName;
 }
 
 void RandomPlayerbotFactory::CreateRandomArenaTeams(ArenaType type, uint32 count)
@@ -912,7 +909,7 @@ std::string const RandomPlayerbotFactory::CreateRandomArenaTeamName()
     if (!result)
     {
         LOG_ERROR("playerbots", "No more names left for random arena teams");
-        return std::move(arenaTeamName);
+        return arenaTeamName;
     }
 
     Field* fields = result->Fetch();
@@ -927,11 +924,11 @@ std::string const RandomPlayerbotFactory::CreateRandomArenaTeamName()
     if (!result)
     {
         LOG_ERROR("playerbots", "No more names left for random arena teams");
-        return std::move(arenaTeamName);
+        return arenaTeamName;
     }
 
     fields = result->Fetch();
     arenaTeamName = fields[0].Get<std::string>();
 
-    return std::move(arenaTeamName);
+    return arenaTeamName;
 }

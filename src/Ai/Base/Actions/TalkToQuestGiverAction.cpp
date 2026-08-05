@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "TalkToQuestGiverAction.h"
@@ -171,7 +172,7 @@ void TalkToQuestGiverAction::RewardMultipleItem(Quest const* quest, Object* ques
     std::set<uint32> bestIds;
 
     std::ostringstream outid;
-    if (!botAI->IsAlt() || sPlayerbotAIConfig.autoPickReward == "yes")
+    if (!botAI->IsAltBot() || sPlayerbotAIConfig.autoPickReward == "yes")
     {
         bestIds = BestRewards(quest);
         if (!bestIds.empty())
@@ -231,7 +232,6 @@ void TalkToQuestGiverAction::AskToSelectReward(Quest const* quest, std::ostrings
     for (uint8 i = 0; i < quest->GetRewChoiceItemsCount(); ++i)
     {
         ItemTemplate const* item = sObjectMgr->GetItemTemplate(quest->RewardChoiceItemId[i]);
-        ItemUsage usage = AI_VALUE2(ItemUsage, "item usage", quest->RewardChoiceItemId[i]);
 
         if (!forEquip || BestRewards(quest).count(i) > 0)
         {
@@ -248,7 +248,6 @@ bool TurnInQueryQuestAction::Execute(Event event)
     WorldPacket pakcet = event.getPacket();
     ObjectGuid guid;
     uint32 questId;
-    ObjectGuid unk1;
     pakcet >> guid >> questId;
     Object* object =
         ObjectAccessor::GetObjectByTypeMask(*bot, guid, TYPEMASK_UNIT | TYPEMASK_GAMEOBJECT | TYPEMASK_ITEM);

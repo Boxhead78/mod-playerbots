@@ -1,12 +1,14 @@
 /*
- * Copyright (C) 2016+ AzerothCore <www.azerothcore.org>, released under GNU AGPL v3 license, you may redistribute it
- * and/or modify it under version 3 of the License, or (at your option), any later version.
+ * This file is part of the mod-playerbots module for AzerothCore. See AUTHORS file for Copyright
+ * information; released under GNU GPL v2 license, redistribute/modify under version 2 of the License,
+ * or (at your option) any later version.
  */
 
 #include "LeaveGroupAction.h"
 
 #include "Event.h"
 #include "PlayerbotAIConfig.h"
+#include "PlayerbotTextMgr.h"
 #include "Playerbots.h"
 
 bool LeaveGroupAction::Execute(Event event)
@@ -86,13 +88,15 @@ bool LeaveGroupAction::Leave()
 
     Player* master = botAI -> GetMaster();
     if (master)
-        botAI->TellMaster("Goodbye!", PLAYERBOT_SECURITY_TALK);
+        botAI->TellMaster(
+            PlayerbotTextMgr::instance().GetBotTextOrDefault("goodbye", "Goodbye!", {}),
+            PLAYERBOT_SECURITY_TALK);
 
     botAI->LeaveOrDisbandGroup();
     return true;
 }
 
-bool LeaveFarAwayAction::Execute(Event event)
+bool LeaveFarAwayAction::Execute(Event /*event*/)
 {
     // allow bot to leave party when they want
     return Leave();
@@ -123,7 +127,7 @@ bool LeaveFarAwayAction::isUseful()
     if (trueMaster && !GET_PLAYERBOT_AI(trueMaster))
         return false;
 
-    if (botAI->IsAlt() &&
+    if (botAI->IsAltBot() &&
         (!groupLeaderBotAI || groupLeaderBotAI->IsRealPlayer()))  // Don't leave group when alt grouped with player groupLeader.
         return false;
 
